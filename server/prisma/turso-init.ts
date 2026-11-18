@@ -293,3 +293,4 @@ initTurso().catch((err) => {
   console.error('❌ Turso initialization failed:', err);
   process.exit(1);
 });
+
