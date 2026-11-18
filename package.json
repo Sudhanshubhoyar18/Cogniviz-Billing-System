@@ -1,0 +1,33 @@
+{
+  "name": "cogniviz-billing-crm",
+  "version": "1.0.0",
+  "description": "Enterprise Cloud CRM & Indian GST Billing Management System for Cogniviz Technologies",
+  "private": true,
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "install:all": "npm install && npm run install:server && npm run install:client",
+    "install:server": "cd server && npm install",
+    "install:client": "cd client && npm install",
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm run dev",
+    "build:client": "cd client && npm run build",
+    "build:server": "cd server && npm run build",
+    "build": "npm run build:client && npm run build:server",
+    "start": "cd server && npm run start",
+    "db:push": "cd server && npx prisma db push",
+    "db:seed": "cd server && npm run seed"
+  },
+  "keywords": [
+    "crm",
+    "billing",
+    "gst",
+    "invoicing",
+    "turso",
+    "render"
+  ],
+  "author": "Cogniviz Technologies",
+  "license": "ISC"
+}

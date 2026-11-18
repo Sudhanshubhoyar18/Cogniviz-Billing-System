@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tax Invoice - {{invoiceNumber}}</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 10mm;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    }
+    body {
+      color: #000;
+      background: #fff;
+      font-size: 11px;
+      line-height: 1.35;
+      padding: 8px;
+    }
+    .invoice-title {
+      text-align: center;
+      font-size: 15px;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+    }
+    .main-box {
+      border: 1px solid #000;
+      width: 100%;
+    }
+    .header-grid {
+      display: flex;
+      border-bottom: 1px solid #000;
+    }
+    .supplier-buyer-col {
+      width: 50%;
+      border-right: 1px solid #000;
+      display: flex;
+      flex-direction: column;
+    }
+    .supplier-box {
+      padding: 8px;
+      border-bottom: 1px solid #000;
+      min-height: 110px;
+    }
+    .supplier-box .logo-area {
+      max-height: 45px;
+      margin-bottom: 5px;
+    }
+    .supplier-box .logo-area img {
+      max-height: 45px;
+      max-width: 160px;
+      object-fit: contain;
+    }
+    .company-name {
+      font-size: 13px;
+      font-weight: bold;
+      margin-bottom: 3px;
+    }
+    .buyer-box {
+      padding: 8px;
+      flex-grow: 1;
+    }
+    .buyer-box .buyer-title {
+      font-weight: bold;
+      margin-bottom: 4px;
+      color: #333;
+    }
+    .buyer-name {
+      font-weight: bold;
+      font-size: 12px;
+      margin-bottom: 2px;
+    }
+    .meta-grid-col {
+      width: 50%;
+      display: flex;
+      flex-direction: column;
+    }
+    .meta-row {
+      display: flex;
+      border-bottom: 1px solid #000;
+      min-height: 30px;
+    }
+    .meta-row:last-child {
+      border-bottom: none;
+    }
+    .meta-cell {
+      flex: 1;
+      padding: 4px 6px;
+      border-right: 1px solid #000;
+    }
+    .meta-cell:last-child {
+      border-right: none;
+    }
+    .meta-cell.full-width {
+      border-right: none;
+    }
+    .meta-label {
+      font-size: 9px;
+      color: #444;
+      display: block;
+      margin-bottom: 2px;
+    }
+    .meta-val {
+      font-size: 11px;
+      font-weight: 600;
+    }
+    /* Items Table */
+    .items-table {
+      width: 100%;
+      border-collapse: collapse;
+      border-bottom: 1px solid #000;
+    }
+    .items-table th, .items-table td {
+      border-right: 1px solid #000;
+      padding: 6px 5px;
+      vertical-align: top;
+    }
+    .items-table th:last-child, .items-table td:last-child {
+      border-right: none;
+    }
+    .items-table th {
+      border-bottom: 1px solid #000;
+      background: #f7f7f7;
+      font-size: 10px;
+      font-weight: bold;
+      text-align: center;
+    }
+    .items-table td.col-sl { width: 32px; text-align: center; }
+    .items-table td.col-desc { text-align: left; }
+    .items-table td.col-hsn { width: 65px; text-align: center; }
+    .items-table td.col-qty { width: 55px; text-align: right; }
+    .items-table td.col-rate { width: 68px; text-align: right; font-variant-numeric: tabular-nums; }
+    .items-table td.col-unit { width: 42px; text-align: center; }
+    .items-table td.col-taxable { width: 78px; text-align: right; font-variant-numeric: tabular-nums; }
+    .items-table td.col-gst { width: 45px; text-align: center; }
+    .items-table td.col-amount { width: 85px; text-align: right; font-variant-numeric: tabular-nums; }
+    .item-desc-title {
+      font-weight: 600;
+      color: #111;
+    }
+    .item-desc-sub {
+      font-size: 9.5px;
+      color: #555;
+      margin-top: 2px;
+    }
+    .totals-row td {
+      border-top: 1px solid #000;
+      border-bottom: 1px solid #000;
+      font-weight: bold;
+      background: #fafafa;
+    }
+    /* Bottom Section */
+    .bottom-section {
+      display: flex;
+      border-bottom: 1px solid #000;
+    }
+    .bottom-left {
+      width: 58%;
+      border-right: 1px solid #000;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .bottom-right {
+      width: 42%;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .amount-words-box {
+      margin-bottom: 8px;
+    }
+    .amount-words-title {
+      font-size: 9px;
+      color: #444;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+    .amount-words-val {
+      font-size: 11px;
+      font-weight: bold;
+      color: #000;
+    }
+    .bank-upi-box {
+      background: #fdfdfd;
+      border: 1px solid #ddd;
+      padding: 6px 8px;
+      border-radius: 3px;
+      margin-top: 6px;
+      margin-bottom: 6px;
+      font-size: 10px;
+    }
+    .bank-upi-box strong {
+      display: block;
+      margin-bottom: 3px;
+      color: #222;
+      text-transform: uppercase;
+      font-size: 9.5px;
+    }
+    .declaration-box {
+      margin-top: 6px;
+      font-size: 9px;
+      color: #333;
+    }
+    .declaration-box strong {
+      display: block;
+      margin-bottom: 2px;
+      color: #111;
+    }
+    /* Tax summary table in bottom right */
+    .tax-summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 9.5px;
+      margin-bottom: 10px;
+    }
+    .tax-summary-table th, .tax-summary-table td {
+      border: 1px solid #000;
+      padding: 3px 4px;
+      text-align: right;
+    }
+    .tax-summary-table th {
+      background: #f7f7f7;
+      text-align: center;
+      font-size: 9px;
+    }
+    .grand-total-box {
+      border: 1px solid #000;
+      background: #f5f5f5;
+      padding: 6px 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: bold;
+      margin-bottom: 12px;
+    }
+    .signatory-box {
+      text-align: right;
+      padding-top: 5px;
+      min-height: 75px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+    .signatory-box .comp-line {
+      font-weight: bold;
+      font-size: 10px;
+    }
+    .signatory-box .sign-img {
+      max-height: 45px;
+      max-width: 140px;
+      object-fit: contain;
+      margin: 4px 0;
+    }
+    .signatory-box .auth-text {
+      font-size: 9.5px;
+      font-weight: 600;
+      border-top: 1px dashed #666;
+      padding-top: 3px;
+      display: inline-block;
+    }
+    .footer-note {
+      text-align: center;
+      font-size: 9px;
+      color: #555;
+      margin-top: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    @media print {
+      body {
+        padding: 0;
+      }
+      .no-print {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="invoice-title">Tax Invoice</div>
+
+  <div class="main-box">
+    <!-- Header Grid: Supplier + Buyer (Left) & Metadata (Right) -->
+    <div class="header-grid">
+      <!-- Left: Supplier & Buyer -->
+      <div class="supplier-buyer-col">
+        <!-- Supplier Details -->
+        <div class="supplier-box">
+          {{#if supplier.logoUrl}}
+          <div class="logo-area">
+            <img src="{{supplier.logoUrl}}" alt="Logo" />
+          </div>
+          {{/if}}
+          <div class="company-name">{{supplier.companyName}}</div>
+          <div>{{supplier.address}}</div>
+          <div><strong>State:</strong> {{supplier.state}} (Code: {{supplier.stateCode}})</div>
+          <div><strong>GSTIN:</strong> {{supplier.gstin}}</div>
+          <div><strong>Email:</strong> {{supplier.email}} | <strong>Phone:</strong> {{supplier.phone}}</div>
+        </div>
+
+        <!-- Buyer Details -->
+        <div class="buyer-box">
+          <div class="buyer-title">Buyer</div>
+          <div class="buyer-name">{{customer.name}}</div>
+          {{#if customer.companyName}}<div><strong>{{customer.companyName}}</strong></div>{{/if}}
+          <div>{{customer.billingAddress}}</div>
+          <div><strong>State / Country:</strong> {{customer.state}} (Code: {{customer.stateCode}}), {{customer.country}}</div>
+          {{#if customer.gstin}}<div><strong>GSTIN:</strong> {{customer.gstin}}</div>{{/if}}
+          <div><strong>Place of supply:</strong> {{invoice.placeOfSupply}}</div>
+        </div>
+      </div>
+
+      <!-- Right: Structured Invoice Metadata (Exact Reference 2 Grid) -->
+      <div class="meta-grid-col">
+        <div class="meta-row">
+          <div class="meta-cell">
+            <span class="meta-label">Invoice No.</span>
+            <span class="meta-val">{{invoice.invoiceNumber}}</span>
+          </div>
+          <div class="meta-cell">
+            <span class="meta-label">Dated</span>
+            <span class="meta-val">{{invoice.formattedDate}}</span>
+          </div>
+        </div>
+
+        {{#if invoice.hasDeliveryNoteOrPaymentTerms}}
+        <div class="meta-row">
+          <div class="meta-cell">
+            <span class="meta-label">Delivery Note</span>
+            <span class="meta-val">{{invoice.deliveryNote}}</span>
+          </div>
+          <div class="meta-cell">
+            <span class="meta-label">Mode/Terms of Payment</span>
+            <span class="meta-val">{{invoice.paymentTerms}}</span>
+          </div>
+        </div>
+        {{/if}}
+
+        {{#if invoice.hasSupplierOrOtherRef}}
+        <div class="meta-row">
+          <div class="meta-cell">
+            <span class="meta-label">Supplier's Ref.</span>
+            <span class="meta-val">{{invoice.supplierRef}}</span>
+          </div>
+          <div class="meta-cell">
+            <span class="meta-label">Other Reference(s)</span>
+            <span class="meta-val">{{invoice.otherRef}}</span>
+          </div>
+        </div>
+        {{/if}}
+
+        {{#if invoice.hasBuyersOrder}}
+        <div class="meta-row">
+          <div class="meta-cell">
+            <span class="meta-label">Buyer's Order No.</span>
+            <span class="meta-val">{{invoice.buyersOrderNo}}</span>
+          </div>
+          <div class="meta-cell">
+            <span class="meta-label">Dated</span>
+            <span class="meta-val">{{invoice.formattedOrderDate}}</span>
+          </div>
+        </div>
+        {{/if}}
+
+        {{#if invoice.hasDespatchDoc}}
+        <div class="meta-row">
+          <div class="meta-cell">
+            <span class="meta-label">Despatch Document No.</span>
+            <span class="meta-val">{{invoice.despatchDocNo}}</span>
+          </div>
+          <div class="meta-cell">
+            <span class="meta-label">Delivery Note Date</span>
+            <span class="meta-val">{{invoice.formattedDespatchDate}}</span>
+          </div>
+        </div>
+        {{/if}}
+
+        {{#if invoice.hasDespatchedThrough}}
+        <div class="meta-row">
+          <div class="meta-cell">
+            <span class="meta-label">Despatched through</span>
+            <span class="meta-val">{{invoice.despatchedThrough}}</span>
+          </div>
+          <div class="meta-cell">
+            <span class="meta-label">Destination</span>
+            <span class="meta-val">{{invoice.destination}}</span>
+          </div>
+        </div>
+        {{/if}}
+
+        {{#if invoice.termsOfDelivery}}
+        <div class="meta-row">
+          <div class="meta-cell full-width">
+            <span class="meta-label">Terms of Delivery</span>
+            <span class="meta-val">{{invoice.termsOfDelivery}}</span>
+          </div>
+        </div>
+        {{/if}}
+      </div>
+    </div>
+
+    <!-- Item Table -->
+    <table class="items-table">
+      <thead>
+        <tr>
+          <th style="width: 30px;">Sl No.</th>
+          <th>Description of Goods / Services</th>
+          <th style="width: 70px;">HSN/SAC</th>
+          <th style="width: 50px;">Quantity</th>
+          <th style="width: 75px;">Rate (₹)</th>
+          <th style="width: 45px;">per</th>
+          <th style="width: 80px;">Taxable Amt (₹)</th>
+          <th style="width: 45px;">GST %</th>
+          <th style="width: 85px;">Total Amount (₹)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each items}}
+        <tr>
+          <td class="col-sl">{{this.serialNumber}}</td>
+          <td class="col-desc">
+            <div class="item-desc-title">{{this.description}}</div>
+          </td>
+          <td class="col-hsn">{{this.hsnSac}}</td>
+          <td class="col-qty">{{this.quantity}}</td>
+          <td class="col-rate">{{this.formattedRate}}</td>
+          <td class="col-unit">{{this.unit}}</td>
+          <td class="col-taxable">{{this.formattedTaxable}}</td>
+          <td class="col-gst">{{this.gstRate}}%</td>
+          <td class="col-amount"><strong>{{this.formattedTotal}}</strong></td>
+        </tr>
+        {{/each}}
+
+        <!-- Totals Row -->
+        <tr class="totals-row">
+          <td colspan="3" style="text-align: right; padding-right: 8px;">Total</td>
+          <td style="text-align: right;">{{invoice.totalQty}}</td>
+          <td colspan="2"></td>
+          <td style="text-align: right;">₹{{invoice.formattedSubtotal}}</td>
+          <td></td>
+          <td style="text-align: right;">₹{{invoice.formattedGrandTotal}}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Bottom Section: Amount in words, Bank Details, Declaration & Signatory -->
+    <div class="bottom-section">
+      <!-- Bottom Left: Words + Bank Details + Declaration -->
+      <div class="bottom-left">
+        <div class="amount-words-box">
+          <div class="amount-words-title">Amount Chargeable (in words)</div>
+          <div class="amount-words-val">{{invoice.amountInWords}}</div>
+        </div>
+
+        <div class="amount-words-box">
+          <div class="amount-words-title">Tax Amount (in words)</div>
+          <div class="amount-words-val">{{invoice.taxAmountInWords}}</div>
+        </div>
+
+        <div class="bank-upi-box">
+          <strong>Bank & Payment Details</strong>
+          <div>Bank: <strong>{{supplier.bankName}}</strong> | A/C: <strong>{{supplier.accountNumber}}</strong></div>
+          <div>A/C Name: {{supplier.accountName}} | IFSC: <strong>{{supplier.ifsc}}</strong></div>
+          <div>Branch: {{supplier.branch}} | UPI ID: <strong>{{supplier.upiId}}</strong></div>
+        </div>
+
+        <div class="declaration-box">
+          <strong>Declaration</strong>
+          {{supplier.defaultDeclaration}}
+        </div>
+      </div>
+
+      <!-- Bottom Right: Tax Summary Table, Grand Total & Authorized Signatory -->
+      <div class="bottom-right">
+        <!-- Indian GST Tax Breakup Table -->
+        <table class="tax-summary-table">
+          <thead>
+            <tr>
+              <th>GST %</th>
+              <th>Taxable Val (₹)</th>
+              {{#if invoice.isInterstate}}
+              <th>IGST (₹)</th>
+              {{else}}
+              <th>CGST (₹)</th>
+              <th>SGST (₹)</th>
+              {{/if}}
+              <th>Total Tax (₹)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="text-align: center;">Combined</td>
+              <td>{{invoice.formattedTaxableAmount}}</td>
+              {{#if invoice.isInterstate}}
+              <td>{{invoice.formattedIgst}}</td>
+              {{else}}
+              <td>{{invoice.formattedCgst}}</td>
+              <td>{{invoice.formattedSgst}}</td>
+              {{/if}}
+              <td><strong>{{invoice.formattedTotalTax}}</strong></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Grand Total Bar -->
+        <div class="grand-total-box">
+          <span>Grand Total (INR)</span>
+          <span style="font-size: 14px;">₹ {{invoice.formattedGrandTotal}}</span>
+        </div>
+
+        <!-- Authorized Signatory (Exact Ref 2) -->
+        <div class="signatory-box">
+          <div class="comp-line">for {{supplier.companyName}}</div>
+          {{#if supplier.signatureUrl}}
+          <img class="sign-img" src="{{supplier.signatureUrl}}" alt="Signature" />
+          {{else}}
+          <div style="height: 35px;"></div>
+          {{/if}}
+          <div class="auth-text">Authorised Signatory</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-note">{{supplier.invoiceFooter}}</div>
+
+</body>
+</html>

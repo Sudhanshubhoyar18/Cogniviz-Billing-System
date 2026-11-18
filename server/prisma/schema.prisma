@@ -1,0 +1,232 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         String   @default("ADMIN")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model CompanySettings {
+  id                   String   @id @default("default")
+  companyName          String   @default("Cogniviz Technologies")
+  logoUrl              String?
+  address              String   @default("Plot 12, Tech Park, Electronic City, Bengaluru, Karnataka 560100")
+  gstin                String   @default("29ABCDE1234F1Z5")
+  state                String   @default("Karnataka")
+  stateCode            String   @default("29")
+  country              String   @default("India")
+  email                String   @default("contact@cogniviz.com")
+  phone                String   @default("+91 9876543210")
+  website              String   @default("www.cogniviz.com")
+
+  // Bank & UPI
+  bankName             String   @default("HDFC Bank")
+  accountName          String   @default("Cogniviz Technologies Pvt Ltd")
+  accountNumber        String   @default("50200012345678")
+  ifsc                 String   @default("HDFC0001234")
+  branch               String   @default("Electronic City, Bengaluru")
+  upiId                String   @default("cogniviz@hdfcbank")
+
+  // Invoice Numbering & Defaults
+  invoicePrefix        String   @default("INV")
+  invoiceNextNumber    Int      @default(1)
+  financialYear        String   @default("2026-27")
+  defaultCurrency      String   @default("INR")
+  currencySymbol       String   @default("₹")
+  defaultDeclaration   String   @default("We declare that this invoice shows the actual price of the goods/services described and that all particulars are true and correct.")
+  invoiceFooter        String   @default("This is a Computer Generated Invoice")
+  signatureUrl         String?
+  stampUrl             String?
+
+  // Template display toggles (Optional fields in Ref 2)
+  showDeliveryNote     Boolean  @default(true)
+  showModeOfPayment    Boolean  @default(true)
+  showSupplierRef      Boolean  @default(true)
+  showOtherRef         Boolean  @default(true)
+  showBuyersOrder      Boolean  @default(true)
+  showDespatchDoc      Boolean  @default(true)
+  showDespatchedThrough Boolean @default(true)
+  showDestination      Boolean  @default(true)
+  showTermsOfDelivery  Boolean  @default(true)
+
+  updatedAt            DateTime @updatedAt
+}
+
+model Customer {
+  id             String    @id @default(cuid())
+  customerCode   String?   @unique
+  name           String
+  companyName    String?
+  gstin          String?
+  email          String?
+  phone          String?
+  whatsapp       String?
+  billingAddress String?
+  state          String?
+  stateCode      String?
+  country        String    @default("India")
+  notes          String?
+  isArchived     Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  invoices       Invoice[]
+  payments       Payment[]
+}
+
+model Invoice {
+  id                  String       @id @default(cuid())
+  invoiceNumber       String       @unique
+  invoiceDate         DateTime     @default(now())
+  status              String       @default("DRAFT") // DRAFT, ISSUED, PAID, PARTIALLY_PAID, OVERDUE, CANCELLED
+
+  // Customer Relation
+  customerId          String?
+  customer            Customer?    @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  customerSnapshot    String?      // Stored JSON of customer data at issue time
+  supplierSnapshot    String?      // Stored JSON of company settings at issue time
+
+  // Reference 2 Metadata Fields
+  deliveryNote        String?
+  paymentTerms        String?      // Mode / Terms of Payment
+  supplierRef         String?
+  otherRef            String?
+  buyersOrderNo       String?
+  orderDate           DateTime?
+  despatchDocNo       String?
+  despatchDate        DateTime?
+  despatchedThrough   String?
+  destination         String?
+  placeOfSupply       String?
+  termsOfDelivery     String?
+
+  // Tax Structure
+  isInterstate        Boolean      @default(false) // If true, IGST. If false, CGST + SGST
+
+  // Calculations
+  subtotal            Float        @default(0)
+  discount            Float        @default(0)
+  taxableAmount       Float        @default(0)
+  cgstAmount          Float        @default(0)
+  sgstAmount          Float        @default(0)
+  igstAmount          Float        @default(0)
+  totalTaxAmount      Float        @default(0)
+  otherCharges        Float        @default(0)
+  roundOff            Float        @default(0)
+  grandTotal          Float        @default(0)
+  amountInWords       String?
+
+  // Financial tracking
+  amountReceived      Float        @default(0)
+  outstandingBalance  Float        @default(0)
+
+  // Document outputs & communications
+  pdfUrl              String?
+  emailStatus         String       @default("NOT_SENT") // NOT_SENT, SENT, FAILED
+  emailSentAt         DateTime?
+  whatsappShareCount  Int          @default(0)
+  notes               String?
+  termsAndConditions  String?
+
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+
+  items               InvoiceItem[]
+  payments            Payment[]
+  communications      InvoiceCommunication[]
+  auditLogs           InvoiceAuditLog[]
+}
+
+model InvoiceItem {
+  id            String   @id @default(cuid())
+  invoiceId     String
+  invoice       Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  serialNumber  Int
+  description   String
+  hsnSac        String?
+  quantity      Float    @default(1)
+  unit          String   @default("Nos")
+  rate          Float    @default(0)
+  taxableAmount Float    @default(0)
+  gstRate       Float    @default(18) // e.g. 18 for 18%
+  cgstRate      Float    @default(0)
+  sgstRate      Float    @default(0)
+  igstRate      Float    @default(0)
+  cgstAmount    Float    @default(0)
+  sgstAmount    Float    @default(0)
+  igstAmount    Float    @default(0)
+  totalAmount   Float    @default(0)
+}
+
+model Payment {
+  id             String    @id @default(cuid())
+  invoiceId      String
+  invoice        Invoice   @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  customerId     String?
+  customer       Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  paymentDate    DateTime  @default(now())
+  amount         Float
+  paymentMethod  String    @default("UPI") // UPI, BANK_TRANSFER, CASH, CHEQUE, OTHER
+  transactionRef String?
+  notes          String?
+  receiptNumber  String?
+  createdAt      DateTime  @default(now())
+}
+
+model ServiceItem {
+  id             String   @id @default(cuid())
+  name           String
+  description    String?
+  hsnSac         String?
+  defaultRate    Float    @default(0)
+  unit           String   @default("Nos")
+  defaultGstRate Float    @default(18)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model InvoiceCommunication {
+  id          String   @id @default(cuid())
+  invoiceId   String
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  type        String   // EMAIL, WHATSAPP
+  recipient   String
+  status      String   // SENT, PENDING, FAILED
+  subject     String?
+  message     String?
+  metadata    String?
+  createdAt   DateTime @default(now())
+}
+
+model InvoiceAuditLog {
+  id          String   @id @default(cuid())
+  invoiceId   String
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  action      String   // CREATED, UPDATED, ISSUED, PAYMENT_RECORDED, CANCELLED, EMAIL_SENT, WHATSAPP_SHARED
+  details     String?
+  performedBy String   @default("Admin")
+  createdAt   DateTime @default(now())
+}
+
+model FileRecord {
+  id           String   @id @default(cuid())
+  filename     String
+  originalName String
+  mimeType     String
+  size         Int
+  path         String
+  category     String   // LOGO, SIGNATURE, STAMP, INVOICE_PDF
+  createdAt    DateTime @default(now())
+}

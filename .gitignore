@@ -1,0 +1,13 @@
+node_modules/
+dist/
+build/
+.env
+*.log
+local.db
+local.db-journal
+dev.db
+dev.db-journal
+uploads/
+*.pdf
+.DS_Store
+.turbo
