@@ -21,9 +21,8 @@ services:
         value: Cogniviz Administrator
       - key: DATABASE_URL
         value: "file:./dev.db"
-      # Configure Turso Cloud credentials on Render Dashboard:
-      # - key: TURSO_DATABASE_URL
-      #   value: "libsql://your-db-org.turso.io"
-      # - key: TURSO_AUTH_TOKEN
-      #   value: "your-turso-token"
+      - key: TURSO_DATABASE_URL
+        value: "libsql://cogniviz-technologies-billing-system-sudhanshubhoyar18.turso.io"
+      - key: TURSO_AUTH_TOKEN
+        sync: false
 
