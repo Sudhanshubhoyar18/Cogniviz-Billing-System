@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useSettings } from '../../context/SettingsContext';
+import { SidebarInstallButton } from '../common/InstallAppPrompt';
 
 interface SidebarProps {
   collapsed: boolean;
@@ -117,6 +118,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {!collapsed && <span>{item.name}</span>}
             </NavLink>
           ))}
+        </div>
+
+        {/* Direct Phone App Install Button */}
+        <div className="px-3 pb-2">
+          <SidebarInstallButton collapsed={collapsed} />
         </div>
 
         {/* Bottom: Admin Profile & Logout */}
