@@ -289,3 +289,4 @@ export const SidebarInstallButton: React.FC<{ collapsed: boolean }> = ({ collaps
     </>
   );
 };
+

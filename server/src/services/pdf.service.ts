@@ -88,6 +88,8 @@ export function compileInvoiceHtml(invoiceData: any, supplierSettings: any): str
 
     isInterstate: invoiceData.isInterstate,
     totalQty,
+    hasGst: (Number(invoiceData.totalTaxAmount) > 0) || (invoiceData.items || []).some((it: any) => Number(it.gstRate) > 0),
+    invoiceTitle: ((Number(invoiceData.totalTaxAmount) > 0) || (invoiceData.items || []).some((it: any) => Number(it.gstRate) > 0)) ? 'Tax Invoice' : 'Invoice',
     formattedSubtotal: formatCurrency(invoiceData.subtotal),
     formattedTaxableAmount: formatCurrency(invoiceData.taxableAmount),
     formattedCgst: formatCurrency(invoiceData.cgstAmount),
@@ -96,7 +98,7 @@ export function compileInvoiceHtml(invoiceData: any, supplierSettings: any): str
     formattedTotalTax: formatCurrency(invoiceData.totalTaxAmount),
     formattedGrandTotal: formatCurrency(invoiceData.grandTotal),
     amountInWords: invoiceData.amountInWords || numberToIndianWords(invoiceData.grandTotal),
-    taxAmountInWords: numberToIndianWords(invoiceData.totalTaxAmount),
+    taxAmountInWords: (Number(invoiceData.totalTaxAmount) > 0) ? numberToIndianWords(invoiceData.totalTaxAmount) : 'Nil (No Tax Applicable)',
   };
 
   const supplier = {
@@ -176,6 +178,7 @@ export function compileInvoiceHtml(invoiceData: any, supplierSettings: any): str
   }
 
   // 3. Invoice Metadata
+  html = html.replace(/\{\{invoice\.invoiceTitle\}\}/g, invoice.invoiceTitle);
   html = html.replace(/\{\{invoice\.invoiceNumber\}\}/g, invoice.invoiceNumber);
   html = html.replace(/\{\{invoice\.formattedDate\}\}/g, invoice.formattedDate);
   html = html.replace(/\{\{invoice\.placeOfSupply\}\}/g, invoice.placeOfSupply);

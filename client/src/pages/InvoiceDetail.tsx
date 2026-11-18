@@ -110,7 +110,7 @@ export const InvoiceDetail: React.FC = () => {
               className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-sm transition-all"
             >
               <FileCheck className="w-4 h-4" />
-              <span>Issue Official Tax Invoice</span>
+              <span>Issue Official {invoice.totalTaxAmount > 0 ? 'Tax Invoice' : 'Invoice'}</span>
             </button>
           )}
 
@@ -188,6 +188,7 @@ export const InvoiceDetail: React.FC = () => {
             placeOfSupply={invoice.placeOfSupply || ''}
             termsOfDelivery={invoice.termsOfDelivery || ''}
             isInterstate={invoice.isInterstate}
+            applyGst={invoice.totalTaxAmount > 0 || (invoice.items || []).some((it: any) => Number(it.gstRate) > 0)}
             subtotal={invoice.subtotal}
             taxableAmount={invoice.taxableAmount}
             cgstAmount={invoice.cgstAmount}

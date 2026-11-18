@@ -148,12 +148,18 @@ router.post('/', requireAuth, async (req: AuthenticatedRequest, res: Response) =
       finalCustomerId = customerRecord.id;
     }
 
+    const shouldApplyGst = req.body.applyGst !== false;
+    const processedItems = items.map((it: any) => ({
+      ...it,
+      gstRate: shouldApplyGst ? (Number(it.gstRate) || 0) : 0,
+    }));
+
     const targetPlaceOfSupply = placeOfSupply || customerRecord?.state || settings.state;
     const isInterstate = isInterstateOverride !== undefined
       ? Boolean(isInterstateOverride)
       : isInterstateTransaction(settings.state, targetPlaceOfSupply);
 
-    const calc = calculateInvoiceTotals(items, isInterstate, discount, otherCharges);
+    const calc = calculateInvoiceTotals(processedItems, isInterstate, discount, otherCharges);
     const words = numberToIndianWords(calc.grandTotal);
 
     const existing = await prisma.invoice.findUnique({ where: { invoiceNumber } });

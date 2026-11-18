@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Tax Invoice - {{invoiceNumber}}</title>
+  <title>{{invoice.invoiceTitle}} - {{invoiceNumber}}</title>
   <style>
     @page {
       size: A4 portrait;
@@ -285,7 +285,7 @@
 </head>
 <body>
 
-  <div class="invoice-title">Tax Invoice</div>
+  <div class="invoice-title">{{invoice.invoiceTitle}}</div>
 
   <div class="main-box">
     <!-- Header Grid: Supplier + Buyer (Left) & Metadata (Right) -->

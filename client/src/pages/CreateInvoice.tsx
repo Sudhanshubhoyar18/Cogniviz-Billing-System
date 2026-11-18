@@ -46,6 +46,10 @@ export const CreateInvoice: React.FC = () => {
   // Interstate vs Intrastate tax toggle
   const [isInterstateOverride, setIsInterstateOverride] = useState<boolean | null>(null);
 
+  // Apply GST Checkbox & Manual Percentage State
+  const [applyGst, setApplyGst] = useState<boolean>(true);
+  const [manualGstRate, setManualGstRate] = useState<number>(18);
+
   // Customer Management
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
@@ -140,10 +144,10 @@ export const CreateInvoice: React.FC = () => {
   const calculatedItems = items.map((it, idx) => {
     const qty = Number(it.quantity) || 0;
     const rate = Number(it.rate) || 0;
-    const gstRate = Number(it.gstRate) || 0;
+    const effectiveGstRate = applyGst ? (Number(it.gstRate) || 0) : 0;
 
     const itemTaxable = Math.round((qty * rate) * 100) / 100;
-    const taxAmt = Math.round(((itemTaxable * gstRate) / 100) * 100) / 100;
+    const taxAmt = Math.round(((itemTaxable * effectiveGstRate) / 100) * 100) / 100;
     const total = Math.round((itemTaxable + taxAmt) * 100) / 100;
 
     let cgstRate = 0;
@@ -153,19 +157,22 @@ export const CreateInvoice: React.FC = () => {
     let sgstAmount = 0;
     let igstAmount = 0;
 
-    if (isInterstate) {
-      igstRate = gstRate;
-      igstAmount = taxAmt;
-    } else {
-      cgstRate = gstRate / 2;
-      sgstRate = gstRate / 2;
-      cgstAmount = Math.round((taxAmt / 2) * 100) / 100;
-      sgstAmount = Math.round((taxAmt / 2) * 100) / 100;
+    if (applyGst && effectiveGstRate > 0) {
+      if (isInterstate) {
+        igstRate = effectiveGstRate;
+        igstAmount = taxAmt;
+      } else {
+        cgstRate = effectiveGstRate / 2;
+        sgstRate = effectiveGstRate / 2;
+        cgstAmount = Math.round((taxAmt / 2) * 100) / 100;
+        sgstAmount = Math.round((taxAmt / 2) * 100) / 100;
+      }
     }
 
     return {
       ...it,
       serialNumber: idx + 1,
+      gstRate: applyGst ? (Number(it.gstRate) || 0) : 0,
       taxableAmount: itemTaxable,
       cgstRate,
       sgstRate,
@@ -179,10 +186,10 @@ export const CreateInvoice: React.FC = () => {
 
   const subtotal = calculatedItems.reduce((sum, it) => sum + it.taxableAmount, 0);
   const taxableAmount = Math.max(0, subtotal - Number(discount || 0));
-  const totalCgst = isInterstate ? 0 : calculatedItems.reduce((sum, it) => sum + (it.cgstAmount || 0), 0);
-  const totalSgst = isInterstate ? 0 : calculatedItems.reduce((sum, it) => sum + (it.sgstAmount || 0), 0);
-  const totalIgst = isInterstate ? calculatedItems.reduce((sum, it) => sum + (it.igstAmount || 0), 0) : 0;
-  const totalTaxAmount = isInterstate ? totalIgst : totalCgst + totalSgst;
+  const totalCgst = (applyGst && !isInterstate) ? calculatedItems.reduce((sum, it) => sum + (it.cgstAmount || 0), 0) : 0;
+  const totalSgst = (applyGst && !isInterstate) ? calculatedItems.reduce((sum, it) => sum + (it.sgstAmount || 0), 0) : 0;
+  const totalIgst = (applyGst && isInterstate) ? calculatedItems.reduce((sum, it) => sum + (it.igstAmount || 0), 0) : 0;
+  const totalTaxAmount = applyGst ? (isInterstate ? totalIgst : totalCgst + totalSgst) : 0;
   const rawGrandTotal = taxableAmount + totalTaxAmount + Number(otherCharges || 0);
   const grandTotal = Math.round(rawGrandTotal);
   const amountInWords = numberToIndianWords(grandTotal);
@@ -205,7 +212,7 @@ export const CreateInvoice: React.FC = () => {
         unit: 'Nos',
         rate: 0,
         taxableAmount: 0,
-        gstRate: 18,
+        gstRate: applyGst ? manualGstRate : 0,
         totalAmount: 0,
       },
     ]);
@@ -227,7 +234,7 @@ export const CreateInvoice: React.FC = () => {
       hsnSac: service.hsnSac || '',
       rate: service.defaultRate,
       unit: service.unit,
-      gstRate: service.defaultGstRate,
+      gstRate: applyGst ? (service.defaultGstRate ?? manualGstRate) : 0,
     };
     setItems(updated);
   };
@@ -257,6 +264,7 @@ export const CreateInvoice: React.FC = () => {
         invoiceNumber: invoiceNumber.trim(),
         invoiceDate,
         status,
+        applyGst,
         deliveryNote: deliveryNote.trim() || undefined,
         paymentTerms: paymentTerms.trim() || undefined,
         supplierRef: supplierRef.trim() || undefined,
@@ -677,6 +685,95 @@ export const CreateInvoice: React.FC = () => {
               </div>
             </div>
 
+            {/* APPLY GST CHECKBOX & MANUAL PERCENTAGE (WITH / WITHOUT GST) */}
+            <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/50 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <label className="flex items-center gap-3 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={applyGst}
+                    onChange={(e) => {
+                      const enabled = e.target.checked;
+                      setApplyGst(enabled);
+                      if (enabled) {
+                        setItems(items.map(it => ({ ...it, gstRate: manualGstRate || 18 })));
+                      } else {
+                        setItems(items.map(it => ({ ...it, gstRate: 0 })));
+                      }
+                    }}
+                    className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
+                  />
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-slate-900">
+                        Apply GST to this Invoice
+                      </span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        applyGst
+                          ? 'bg-blue-600 text-white shadow-xs'
+                          : 'bg-amber-100 text-amber-800 border border-amber-200'
+                      }`}>
+                        {applyGst ? 'Tax Invoice (With GST)' : 'Non-GST Bill (Without GST)'}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500">
+                      {applyGst
+                        ? 'CGST/SGST or IGST calculated from manual GST %.'
+                        : 'Bill without GST. Zero taxes applied (₹0.00).'}
+                    </p>
+                  </div>
+                </label>
+
+                {applyGst && (
+                  <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-blue-200/90 shadow-sm shrink-0">
+                    <span className="text-[11px] font-semibold text-slate-700 whitespace-nowrap">
+                      Manual GST %:
+                    </span>
+                    <div className="relative w-16">
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="any"
+                        value={manualGstRate}
+                        onChange={(e) => {
+                          const val = Number(e.target.value);
+                          setManualGstRate(val);
+                          setItems(items.map(it => ({ ...it, gstRate: val })));
+                        }}
+                        className="w-full pl-2 pr-5 py-1 text-xs rounded-lg border border-slate-300 bg-white font-mono font-bold text-center focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                        placeholder="18"
+                      />
+                      <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-bold pointer-events-none">
+                        %
+                      </span>
+                    </div>
+
+                    {/* Quick Preset Buttons */}
+                    <div className="flex items-center gap-1 border-l border-slate-200 pl-2">
+                      {[0, 5, 12, 18, 28].map((rate) => (
+                        <button
+                          key={rate}
+                          type="button"
+                          onClick={() => {
+                            setManualGstRate(rate);
+                            setItems(items.map(it => ({ ...it, gstRate: rate })));
+                          }}
+                          className={`px-1.5 py-0.5 text-[10px] rounded font-bold transition-all ${
+                            manualGstRate === rate
+                              ? 'bg-blue-600 text-white shadow-xs'
+                              : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200'
+                          }`}
+                        >
+                          {rate}%
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* Place of Supply & Tax Mode */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
               <div>
@@ -696,20 +793,28 @@ export const CreateInvoice: React.FC = () => {
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
                   GST Tax Treatment
                 </label>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className={`px-2.5 py-1 rounded-lg text-xs font-bold ${
-                    isInterstate ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-blue-50 text-blue-700 border border-blue-200'
-                  }`}>
-                    {isInterstate ? 'Interstate (IGST)' : 'Intrastate (CGST + SGST)'}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setIsInterstateOverride(!isInterstate)}
-                    className="text-[11px] text-slate-500 hover:text-slate-800 underline"
-                  >
-                    Toggle Override
-                  </button>
-                </div>
+                {applyGst ? (
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className={`px-2.5 py-1 rounded-lg text-xs font-bold ${
+                      isInterstate ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-blue-50 text-blue-700 border border-blue-200'
+                    }`}>
+                      {isInterstate ? 'Interstate (IGST)' : 'Intrastate (CGST + SGST)'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setIsInterstateOverride(!isInterstate)}
+                      className="text-[11px] text-slate-500 hover:text-slate-800 underline"
+                    >
+                      Toggle Override
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                      Non-GST (No Tax Applied)
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -828,18 +933,30 @@ export const CreateInvoice: React.FC = () => {
                     </div>
 
                     <div>
-                      <label className="block text-[10px] text-slate-500 mb-0.5">GST Rate (%)</label>
-                      <select
-                        value={item.gstRate}
-                        onChange={(e) => handleItemChange(idx, 'gstRate', Number(e.target.value))}
-                        className="w-full px-2.5 py-1 text-xs rounded-lg border border-slate-200 bg-white text-center font-semibold"
-                      >
-                        <option value="0">0%</option>
-                        <option value="5">5%</option>
-                        <option value="12">12%</option>
-                        <option value="18">18%</option>
-                        <option value="28">28%</option>
-                      </select>
+                      <label className="block text-[10px] text-slate-500 mb-0.5 font-medium">
+                        {applyGst ? 'GST Rate (%)' : 'GST Status'}
+                      </label>
+                      {applyGst ? (
+                        <div className="relative">
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            step="any"
+                            value={item.gstRate}
+                            onChange={(e) => handleItemChange(idx, 'gstRate', Number(e.target.value))}
+                            placeholder="18"
+                            className="w-full pl-2 pr-5 py-1 text-xs rounded-lg border border-slate-200 bg-white text-center font-bold font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                          />
+                          <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-bold pointer-events-none">
+                            %
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="py-1 px-1.5 text-[11px] text-center text-slate-400 bg-slate-100 rounded-lg font-semibold border border-slate-200/60">
+                          0% (w/o GST)
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -926,6 +1043,7 @@ export const CreateInvoice: React.FC = () => {
               placeOfSupply={placeOfSupply}
               termsOfDelivery={termsOfDelivery}
               isInterstate={isInterstate}
+              applyGst={applyGst}
               subtotal={subtotal}
               taxableAmount={taxableAmount}
               cgstAmount={totalCgst}

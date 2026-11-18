@@ -22,6 +22,7 @@ interface InvoicePreviewProps {
   placeOfSupply?: string;
   termsOfDelivery?: string;
   isInterstate: boolean;
+  applyGst?: boolean;
   subtotal: number;
   taxableAmount: number;
   cgstAmount: number;
@@ -52,6 +53,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
   placeOfSupply,
   termsOfDelivery,
   isInterstate,
+  applyGst,
   subtotal,
   taxableAmount,
   cgstAmount,
@@ -62,8 +64,14 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
   amountInWords,
   className = '',
 }) => {
+  const hasGst = applyGst !== undefined
+    ? applyGst
+    : (totalTaxAmount > 0 || items.some(it => Number(it.gstRate) > 0));
+
   const calculatedWords = amountInWords || numberToIndianWords(grandTotal);
-  const taxWords = numberToIndianWords(totalTaxAmount);
+  const taxWords = hasGst && totalTaxAmount > 0
+    ? numberToIndianWords(totalTaxAmount)
+    : 'Nil (No Tax Applicable)';
   const totalQty = items.reduce((sum, it) => sum + (Number(it.quantity) || 0), 0);
 
   const supName = supplier?.companyName || 'Cogniviz Technologies';
@@ -82,7 +90,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
     <div className={`bg-white text-black text-[10px] leading-tight font-sans shadow-md border border-slate-300 p-4 md:p-6 rounded-lg select-text ${className}`}>
       {/* Title */}
       <div className="text-center font-bold text-sm uppercase tracking-wide mb-2 pb-1 border-b border-black">
-        Tax Invoice
+        {hasGst ? 'Tax Invoice' : 'Invoice'}
       </div>
 
       <div className="border border-black">
@@ -328,36 +336,42 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
           {/* Bottom Right: 5 Columns */}
           <div className="col-span-5 p-2 flex flex-col justify-between">
             {/* Tax Summary Table */}
-            <table className="w-full text-[8.5px] border border-black mb-2 border-collapse">
-              <thead>
-                <tr className="bg-neutral-100 border-b border-black text-center font-bold">
-                  <th className="p-1 border-r border-black">Taxable Val (₹)</th>
-                  {isInterstate ? (
-                    <th className="p-1 border-r border-black">IGST (₹)</th>
-                  ) : (
-                    <>
-                      <th className="p-1 border-r border-black">CGST (₹)</th>
-                      <th className="p-1 border-r border-black">SGST (₹)</th>
-                    </>
-                  )}
-                  <th className="p-1">Total Tax (₹)</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="text-right font-mono">
-                  <td className="p-1 border-r border-black">{formatNumberOnly(taxableAmount)}</td>
-                  {isInterstate ? (
-                    <td className="p-1 border-r border-black">{formatNumberOnly(igstAmount)}</td>
-                  ) : (
-                    <>
-                      <td className="p-1 border-r border-black">{formatNumberOnly(cgstAmount)}</td>
-                      <td className="p-1 border-r border-black">{formatNumberOnly(sgstAmount)}</td>
-                    </>
-                  )}
-                  <td className="p-1 font-bold">{formatNumberOnly(totalTaxAmount)}</td>
-                </tr>
-              </tbody>
-            </table>
+            {hasGst ? (
+              <table className="w-full text-[8.5px] border border-black mb-2 border-collapse">
+                <thead>
+                  <tr className="bg-neutral-100 border-b border-black text-center font-bold">
+                    <th className="p-1 border-r border-black">Taxable Val (₹)</th>
+                    {isInterstate ? (
+                      <th className="p-1 border-r border-black">IGST (₹)</th>
+                    ) : (
+                      <>
+                        <th className="p-1 border-r border-black">CGST (₹)</th>
+                        <th className="p-1 border-r border-black">SGST (₹)</th>
+                      </>
+                    )}
+                    <th className="p-1">Total Tax (₹)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="text-right font-mono">
+                    <td className="p-1 border-r border-black">{formatNumberOnly(taxableAmount)}</td>
+                    {isInterstate ? (
+                      <td className="p-1 border-r border-black">{formatNumberOnly(igstAmount)}</td>
+                    ) : (
+                      <>
+                        <td className="p-1 border-r border-black">{formatNumberOnly(cgstAmount)}</td>
+                        <td className="p-1 border-r border-black">{formatNumberOnly(sgstAmount)}</td>
+                      </>
+                    )}
+                    <td className="p-1 font-bold">{formatNumberOnly(totalTaxAmount)}</td>
+                  </tr>
+                </tbody>
+              </table>
+            ) : (
+              <div className="border border-black p-1.5 bg-neutral-50 text-center font-semibold text-[8.5px] mb-2 text-neutral-700">
+                Non-GST Bill / Tax: Nil (₹0.00)
+              </div>
+            )}
 
             {/* Grand Total Display */}
             <div className="border border-black bg-neutral-100 p-1.5 flex justify-between items-center font-bold text-[11px] mb-3">
