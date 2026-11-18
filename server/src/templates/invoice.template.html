@@ -48,19 +48,20 @@
       border-bottom: 1px solid #000;
       min-height: 110px;
     }
-    .supplier-box .logo-area {
-      max-height: 45px;
-      margin-bottom: 5px;
-    }
-    .supplier-box .logo-area img {
-      max-height: 45px;
-      max-width: 160px;
-      object-fit: contain;
-    }
     .company-name {
       font-size: 13px;
       font-weight: bold;
-      margin-bottom: 3px;
+      margin-bottom: 1px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      color: #000;
+    }
+    .company-tagline {
+      font-size: 9px;
+      font-weight: bold;
+      color: #1e40af;
+      letter-spacing: 0.4px;
+      margin-bottom: 4px;
     }
     .buyer-box {
       padding: 8px;
@@ -143,11 +144,6 @@
     .item-desc-title {
       font-weight: 600;
       color: #111;
-    }
-    .item-desc-sub {
-      font-size: 9.5px;
-      color: #555;
-      margin-top: 2px;
     }
     .totals-row td {
       border-top: 1px solid #000;
@@ -296,18 +292,14 @@
     <div class="header-grid">
       <!-- Left: Supplier & Buyer -->
       <div class="supplier-buyer-col">
-        <!-- Supplier Details -->
+        <!-- Supplier Details (Text-only as per specification: Company Name + Tagline + Address) -->
         <div class="supplier-box">
-          {{#if supplier.logoUrl}}
-          <div class="logo-area">
-            <img src="{{supplier.logoUrl}}" alt="Logo" />
-          </div>
-          {{/if}}
           <div class="company-name">{{supplier.companyName}}</div>
+          <div class="company-tagline">{{supplier.tagline}}</div>
           <div>{{supplier.address}}</div>
           <div><strong>State:</strong> {{supplier.state}} (Code: {{supplier.stateCode}})</div>
           <div><strong>GSTIN:</strong> {{supplier.gstin}}</div>
-          <div><strong>Email:</strong> {{supplier.email}} | <strong>Phone:</strong> {{supplier.phone}}</div>
+          <div><strong>Phone:</strong> {{supplier.phone}} | <strong>Email:</strong> {{supplier.email}}</div>
         </div>
 
         <!-- Buyer Details -->

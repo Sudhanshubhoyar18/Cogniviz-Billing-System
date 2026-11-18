@@ -101,13 +101,14 @@ export function compileInvoiceHtml(invoiceData: any, supplierSettings: any): str
 
   const supplier = {
     companyName: supplierSettings.companyName || 'Cogniviz Technologies',
+    tagline: supplierSettings.tagline || '"AI TO SIMPLIFY, TECH TO AMPLIFY"',
     logoUrl: supplierSettings.logoUrl || '',
-    address: supplierSettings.address || '',
-    gstin: supplierSettings.gstin || '',
-    state: supplierSettings.state || 'Karnataka',
-    stateCode: supplierSettings.stateCode || '29',
-    email: supplierSettings.email || '',
-    phone: supplierSettings.phone || '',
+    address: supplierSettings.address || 'Gurunanak Pura, Nagpur',
+    gstin: supplierSettings.gstin || '27ABCDE1234F1Z5',
+    state: supplierSettings.state || 'Maharashtra',
+    stateCode: supplierSettings.stateCode || '27',
+    email: supplierSettings.email || 'contact.cogniviz@gmail.com',
+    phone: supplierSettings.phone || '+91-9373879915',
     website: supplierSettings.website || '',
     bankName: supplierSettings.bankName || '',
     accountName: supplierSettings.accountName || '',
@@ -123,6 +124,7 @@ export function compileInvoiceHtml(invoiceData: any, supplierSettings: any): str
   // Replace simple Handlebars style variables
   // 1. Supplier
   html = html.replace(/\{\{supplier\.companyName\}\}/g, supplier.companyName);
+  html = html.replace(/\{\{supplier\.tagline\}\}/g, supplier.tagline);
   html = html.replace(/\{\{supplier\.address\}\}/g, supplier.address);
   html = html.replace(/\{\{supplier\.gstin\}\}/g, supplier.gstin);
   html = html.replace(/\{\{supplier\.state\}\}/g, supplier.state);

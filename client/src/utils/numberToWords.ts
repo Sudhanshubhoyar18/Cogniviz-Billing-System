@@ -64,3 +64,4 @@ export function numberToIndianWords(amount: number): string {
   result += ' Only';
   return isNegative ? `Minus ${result}` : result;
 }
+

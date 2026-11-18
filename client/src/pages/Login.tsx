@@ -40,17 +40,16 @@ export const Login: React.FC = () => {
       <div className="w-full max-w-md">
         {/* Brand Header */}
         <div className="text-center mb-8">
-          <div className="w-12 h-12 rounded-2xl bg-blue-600 mx-auto flex items-center justify-center text-white shadow-lg shadow-blue-500/20 mb-3">
-            {settings?.logoUrl ? (
-              <img src={settings.logoUrl} alt="Logo" className="w-full h-full object-contain p-2" />
-            ) : (
-              <Building2 className="w-6 h-6 text-white" />
-            )}
+          <div className="w-20 h-16 mx-auto flex items-center justify-center p-1.5 mb-3">
+            <img src="/logo.png" alt="Cogniviz Technologies" className="max-h-full max-w-full object-contain" />
           </div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+          <h1 className="text-xl font-bold uppercase tracking-tight text-slate-900">
             {settings?.companyName || 'Cogniviz Technologies'}
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs font-bold text-blue-600 mt-1 tracking-wide">
+            "AI TO SIMPLIFY, TECH TO AMPLIFY"
+          </p>
+          <p className="text-[11px] text-slate-400 mt-1">
             CRM & Indian GST Billing Management System
           </p>
         </div>
@@ -122,3 +121,4 @@ export const Login: React.FC = () => {
     </div>
   );
 };
+

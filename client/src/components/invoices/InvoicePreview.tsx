@@ -67,12 +67,13 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
   const totalQty = items.reduce((sum, it) => sum + (Number(it.quantity) || 0), 0);
 
   const supName = supplier?.companyName || 'Cogniviz Technologies';
-  const supAddress = supplier?.address || 'Plot 12, Tech Park, Electronic City, Bengaluru, Karnataka 560100';
-  const supState = supplier?.state || 'Karnataka';
-  const supStateCode = supplier?.stateCode || '29';
-  const supGstin = supplier?.gstin || '29ABCDE1234F1Z5';
-  const supEmail = supplier?.email || 'contact@cogniviz.com';
-  const supPhone = supplier?.phone || '+91 9876543210';
+  const supTagline = supplier?.tagline || '"AI TO SIMPLIFY, TECH TO AMPLIFY"';
+  const supAddress = supplier?.address || 'Gurunanak Pura, Nagpur';
+  const supState = supplier?.state || 'Maharashtra';
+  const supStateCode = supplier?.stateCode || '27';
+  const supGstin = supplier?.gstin || '27ABCDE1234F1Z5';
+  const supEmail = supplier?.email || 'contact.cogniviz@gmail.com';
+  const supPhone = supplier?.phone || '+91-9373879915';
 
   const buyerState = customer?.state || supState;
   const buyerPos = placeOfSupply || buyerState;
@@ -89,14 +90,10 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
         <div className="grid grid-cols-2 border-b border-black divide-x divide-black">
           {/* Left Column: Supplier + Buyer */}
           <div className="flex flex-col">
-            {/* Supplier Details */}
+            {/* Supplier Details (Text-only: Company Name, Tagline & Address) */}
             <div className="p-2 border-b border-black min-h-[90px]">
-              {supplier?.logoUrl && (
-                <div className="mb-1 max-h-8">
-                  <img src={supplier.logoUrl} alt="Logo" className="max-h-8 max-w-[130px] object-contain" />
-                </div>
-              )}
-              <div className="font-bold text-xs text-black">{supName}</div>
+              <div className="font-bold text-xs uppercase tracking-wide text-black">{supName}</div>
+              <div className="text-[9px] font-bold text-blue-900 tracking-wide mb-0.5">{supTagline}</div>
               <div className="text-[9.5px] text-neutral-800">{supAddress}</div>
               <div className="text-[9.5px] mt-0.5">
                 <span className="font-semibold">State:</span> {supState} (Code: {supStateCode})
@@ -104,8 +101,8 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
               <div className="text-[9.5px]">
                 <span className="font-semibold">GSTIN:</span> {supGstin}
               </div>
-              <div className="text-[9px] text-neutral-600">
-                Email: {supEmail} | Phone: {supPhone}
+              <div className="text-[9px] text-neutral-700">
+                Phone: {supPhone} | Email: {supEmail}
               </div>
             </div>
 
@@ -391,3 +388,4 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
     </div>
   );
 };
+

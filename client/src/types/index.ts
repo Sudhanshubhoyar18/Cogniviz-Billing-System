@@ -8,6 +8,7 @@ export interface User {
 export interface CompanySettings {
   id: string;
   companyName: string;
+  tagline?: string;
   logoUrl?: string | null;
   address: string;
   gstin: string;
@@ -231,3 +232,4 @@ export interface DashboardStats {
     totalPaid: number;
   }>;
 }
+

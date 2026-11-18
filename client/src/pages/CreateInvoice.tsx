@@ -371,18 +371,21 @@ export const CreateInvoice: React.FC = () => {
               <div>
                 <span className="text-slate-400 block text-[10px] uppercase">Business Name</span>
                 <span className="font-semibold text-slate-900">{settings?.companyName}</span>
+                <span className="text-[10px] font-bold text-blue-600 block mt-0.5">
+                  {settings?.tagline || '"AI TO SIMPLIFY, TECH TO AMPLIFY"'}
+                </span>
               </div>
               <div>
                 <span className="text-slate-400 block text-[10px] uppercase">GSTIN</span>
                 <span className="font-mono font-medium text-slate-900">{settings?.gstin}</span>
               </div>
               <div>
-                <span className="text-slate-400 block text-[10px] uppercase">State of Supply</span>
-                <span className="font-medium text-slate-800">{settings?.state} ({settings?.stateCode})</span>
+                <span className="text-slate-400 block text-[10px] uppercase">Supplier Address</span>
+                <span className="font-medium text-slate-800">{settings?.address}</span>
               </div>
               <div>
-                <span className="text-slate-400 block text-[10px] uppercase">Default Bank</span>
-                <span className="font-medium text-slate-800">{settings?.bankName} (UPI: {settings?.upiId})</span>
+                <span className="text-slate-400 block text-[10px] uppercase">State of Supply</span>
+                <span className="font-medium text-slate-800">{settings?.state} ({settings?.stateCode})</span>
               </div>
             </div>
           </div>
@@ -938,3 +941,4 @@ export const CreateInvoice: React.FC = () => {
     </div>
   );
 };
+

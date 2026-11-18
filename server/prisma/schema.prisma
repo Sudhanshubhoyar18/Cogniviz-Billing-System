@@ -21,22 +21,23 @@ model AdminUser {
 model CompanySettings {
   id                   String   @id @default("default")
   companyName          String   @default("Cogniviz Technologies")
-  logoUrl              String?
-  address              String   @default("Plot 12, Tech Park, Electronic City, Bengaluru, Karnataka 560100")
-  gstin                String   @default("29ABCDE1234F1Z5")
-  state                String   @default("Karnataka")
-  stateCode            String   @default("29")
+  tagline              String   @default("\"AI TO SIMPLIFY, TECH TO AMPLIFY\"")
+  logoUrl              String?  @default("/logo.png")
+  address              String   @default("Gurunanak Pura, Nagpur")
+  gstin                String   @default("27ABCDE1234F1Z5")
+  state                String   @default("Maharashtra")
+  stateCode            String   @default("27")
   country              String   @default("India")
-  email                String   @default("contact@cogniviz.com")
-  phone                String   @default("+91 9876543210")
+  email                String   @default("contact.cogniviz@gmail.com")
+  phone                String   @default("+91-9373879915")
   website              String   @default("www.cogniviz.com")
 
   // Bank & UPI
   bankName             String   @default("HDFC Bank")
-  accountName          String   @default("Cogniviz Technologies Pvt Ltd")
+  accountName          String   @default("Cogniviz Technologies")
   accountNumber        String   @default("50200012345678")
   ifsc                 String   @default("HDFC0001234")
-  branch               String   @default("Electronic City, Bengaluru")
+  branch               String   @default("Nagpur Main Branch")
   upiId                String   @default("cogniviz@hdfcbank")
 
   // Invoice Numbering & Defaults
@@ -90,17 +91,15 @@ model Invoice {
   id                  String       @id @default(cuid())
   invoiceNumber       String       @unique
   invoiceDate         DateTime     @default(now())
-  status              String       @default("DRAFT") // DRAFT, ISSUED, PAID, PARTIALLY_PAID, OVERDUE, CANCELLED
+  status              String       @default("DRAFT")
 
-  // Customer Relation
   customerId          String?
   customer            Customer?    @relation(fields: [customerId], references: [id], onDelete: SetNull)
-  customerSnapshot    String?      // Stored JSON of customer data at issue time
-  supplierSnapshot    String?      // Stored JSON of company settings at issue time
+  customerSnapshot    String?
+  supplierSnapshot    String?
 
-  // Reference 2 Metadata Fields
   deliveryNote        String?
-  paymentTerms        String?      // Mode / Terms of Payment
+  paymentTerms        String?
   supplierRef         String?
   otherRef            String?
   buyersOrderNo       String?
@@ -112,10 +111,8 @@ model Invoice {
   placeOfSupply       String?
   termsOfDelivery     String?
 
-  // Tax Structure
-  isInterstate        Boolean      @default(false) // If true, IGST. If false, CGST + SGST
+  isInterstate        Boolean      @default(false)
 
-  // Calculations
   subtotal            Float        @default(0)
   discount            Float        @default(0)
   taxableAmount       Float        @default(0)
@@ -128,13 +125,11 @@ model Invoice {
   grandTotal          Float        @default(0)
   amountInWords       String?
 
-  // Financial tracking
   amountReceived      Float        @default(0)
   outstandingBalance  Float        @default(0)
 
-  // Document outputs & communications
   pdfUrl              String?
-  emailStatus         String       @default("NOT_SENT") // NOT_SENT, SENT, FAILED
+  emailStatus         String       @default("NOT_SENT")
   emailSentAt         DateTime?
   whatsappShareCount  Int          @default(0)
   notes               String?
@@ -160,7 +155,7 @@ model InvoiceItem {
   unit          String   @default("Nos")
   rate          Float    @default(0)
   taxableAmount Float    @default(0)
-  gstRate       Float    @default(18) // e.g. 18 for 18%
+  gstRate       Float    @default(18)
   cgstRate      Float    @default(0)
   sgstRate      Float    @default(0)
   igstRate      Float    @default(0)
@@ -178,7 +173,7 @@ model Payment {
   customer       Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
   paymentDate    DateTime  @default(now())
   amount         Float
-  paymentMethod  String    @default("UPI") // UPI, BANK_TRANSFER, CASH, CHEQUE, OTHER
+  paymentMethod  String    @default("UPI")
   transactionRef String?
   notes          String?
   receiptNumber  String?
@@ -201,9 +196,9 @@ model InvoiceCommunication {
   id          String   @id @default(cuid())
   invoiceId   String
   invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-  type        String   // EMAIL, WHATSAPP
+  type        String
   recipient   String
-  status      String   // SENT, PENDING, FAILED
+  status      String
   subject     String?
   message     String?
   metadata    String?
@@ -214,7 +209,7 @@ model InvoiceAuditLog {
   id          String   @id @default(cuid())
   invoiceId   String
   invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-  action      String   // CREATED, UPDATED, ISSUED, PAYMENT_RECORDED, CANCELLED, EMAIL_SENT, WHATSAPP_SHARED
+  action      String
   details     String?
   performedBy String   @default("Admin")
   createdAt   DateTime @default(now())
@@ -227,6 +222,6 @@ model FileRecord {
   mimeType     String
   size         Int
   path         String
-  category     String   // LOGO, SIGNATURE, STAMP, INVOICE_PDF
+  category     String
   createdAt    DateTime @default(now())
 }

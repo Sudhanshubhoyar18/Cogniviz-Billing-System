@@ -190,3 +190,4 @@ turso db shell cogniviz-billing-db < backup_20261118.sql
 - **Session Tokens**: JWT authentication with rate-limiting on login routes to prevent brute-force attacks.
 - **Audit Logs**: Every invoice creation, modification, status change, payment collection, and email transmission is logged with timestamp and user details.
 - **Monetary Precision**: Rounded to 2 decimal places with zero floating-point artifacts.
+

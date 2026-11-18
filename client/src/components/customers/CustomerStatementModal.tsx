@@ -187,3 +187,4 @@ export const CustomerStatementModal: React.FC<CustomerStatementModalProps> = ({
     </div>
   );
 };
+

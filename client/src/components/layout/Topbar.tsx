@@ -84,3 +84,4 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleMobileMenu }) => {
     </header>
   );
 };
+

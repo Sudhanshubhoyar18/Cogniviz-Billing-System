@@ -90,3 +90,4 @@ router.put('/change-password', requireAuth, async (req: AuthenticatedRequest, re
 });
 
 export default router;
+

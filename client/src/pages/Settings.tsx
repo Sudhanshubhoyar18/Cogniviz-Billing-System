@@ -141,7 +141,7 @@ export const Settings: React.FC = () => {
             <h2 className="text-sm font-bold text-slate-900">A. Supplier Company Profile</h2>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">Registered Business Name</label>
               <input
@@ -150,6 +150,17 @@ export const Settings: React.FC = () => {
                 value={formData.companyName || ''}
                 onChange={(e) => handleChange('companyName', e.target.value)}
                 className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Tagline / Motto</label>
+              <input
+                type="text"
+                value={formData.tagline || ''}
+                onChange={(e) => handleChange('tagline', e.target.value)}
+                placeholder='"AI TO SIMPLIFY, TECH TO AMPLIFY"'
+                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-medium text-blue-700"
               />
             </div>
 
@@ -488,3 +499,4 @@ export const Settings: React.FC = () => {
     </div>
   );
 };
+

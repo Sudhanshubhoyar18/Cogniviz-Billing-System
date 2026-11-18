@@ -48,3 +48,4 @@ export async function requireAuth(
     res.status(401).json({ error: 'Invalid or expired session token. Please log in again.' });
   }
 }
+

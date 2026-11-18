@@ -55,3 +55,4 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 };
 
 export const useSettings = () => useContext(SettingsContext);
+

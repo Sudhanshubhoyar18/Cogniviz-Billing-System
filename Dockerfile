@@ -85,3 +85,4 @@ COPY --from=builder /app/server/prisma ./server/prisma
 EXPOSE 5000
 
 CMD ["node", "server/dist/index.js"]
+

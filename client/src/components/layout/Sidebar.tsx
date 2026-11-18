@@ -59,26 +59,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
         } ${collapsed ? 'w-20' : 'w-64'}`}
       >
         {/* Brand Header */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-slate-100">
-          <div className="flex items-center gap-3 overflow-hidden">
-            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold shadow-md shadow-blue-500/20 shrink-0">
-              {settings?.logoUrl ? (
-                <img
-                  src={settings.logoUrl}
-                  alt="Logo"
-                  className="w-full h-full object-contain rounded-xl p-1"
-                />
-              ) : (
-                <Building2 className="w-5 h-5 text-white" />
-              )}
+        <div className="h-16 flex items-center justify-between px-3 py-2 border-b border-slate-100">
+          <div className="flex items-center gap-2.5 overflow-hidden">
+            <div className="w-10 h-10 rounded-xl bg-white border border-slate-200/80 p-1 flex items-center justify-center shadow-sm shrink-0">
+              <img
+                src="/logo.png"
+                alt="Cogniviz Logo"
+                className="w-full h-full object-contain"
+                onError={(e) => {
+                  (e.target as HTMLElement).style.display = 'none';
+                }}
+              />
             </div>
             {!collapsed && (
               <div className="flex flex-col truncate">
-                <span className="font-bold text-slate-900 text-sm tracking-tight truncate">
-                  {settings?.companyName || 'Cogniviz Tech'}
+                <span className="font-bold text-slate-900 text-[11.5px] uppercase tracking-tight truncate">
+                  {settings?.companyName || 'Cogniviz Technologies'}
                 </span>
-                <span className="text-[11px] font-medium text-slate-400">
-                  CRM & Invoicing
+                <span className="text-[8.5px] font-bold text-blue-600 tracking-tight truncate">
+                  "AI TO SIMPLIFY, TECH TO AMPLIFY"
                 </span>
               </div>
             )}
@@ -155,3 +154,4 @@ export const Sidebar: React.FC<SidebarProps> = ({
     </>
   );
 };
+

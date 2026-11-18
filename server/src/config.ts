@@ -26,3 +26,4 @@ export const config = {
     from: process.env.SMTP_FROM || 'Cogniviz Billing <billing@cogniviz.com>',
   }
 };
+

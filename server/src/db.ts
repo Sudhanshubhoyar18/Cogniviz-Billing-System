@@ -20,3 +20,4 @@ if (config.tursoUrl && config.tursoUrl.startsWith('libsql://')) {
 
 export { prisma };
 export default prisma;
+
