@@ -18,7 +18,8 @@
     "build": "npm run build:client && npm run build:server",
     "start": "cd server && npm run start",
     "db:push": "cd server && npx prisma db push",
-    "db:seed": "cd server && npm run seed"
+    "db:seed": "cd server && npm run seed",
+    "turso:init": "cd server && npm run turso:init"
   },
   "keywords": [
     "crm",

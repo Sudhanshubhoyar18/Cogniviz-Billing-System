@@ -9,7 +9,8 @@
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
     "prisma:studio": "prisma studio",
-    "seed": "tsx prisma/seed.ts"
+    "seed": "tsx prisma/seed.ts",
+    "turso:init": "tsx prisma/turso-init.ts"
   },
   "dependencies": {
     "@libsql/client": "^0.8.0",
