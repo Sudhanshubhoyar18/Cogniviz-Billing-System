@@ -14,11 +14,18 @@ import {
   Moon,
   Laptop,
   Palette,
+  Boxes,
+  Plus,
+  Trash2,
+  Edit2,
+  Tag,
+  X,
+  Layers,
 } from 'lucide-react';
 import api from '../services/api';
 import { useSettings } from '../context/SettingsContext';
 import { useTheme, ThemeMode } from '../context/ThemeContext';
-import { CompanySettings } from '../types';
+import { CompanySettings, ServiceItem } from '../types';
 
 export const Settings: React.FC = () => {
   const { settings, refreshSettings } = useSettings();
@@ -28,6 +35,14 @@ export const Settings: React.FC = () => {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Services Library State
+  const [services, setServices] = useState<ServiceItem[]>([]);
+  const [servicesLoading, setServicesLoading] = useState(false);
+  const [serviceModalOpen, setServiceModalOpen] = useState(false);
+  const [editingService, setEditingService] = useState<Partial<ServiceItem> | null>(null);
+  const [serviceSaving, setServiceSaving] = useState(false);
+  const [serviceError, setServiceError] = useState<string | null>(null);
+
   // Password Change
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -35,10 +50,23 @@ export const Settings: React.FC = () => {
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [passwordMsg, setPasswordMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  const fetchServices = async () => {
+    setServicesLoading(true);
+    try {
+      const res = await api.get('/services');
+      setServices(res.data);
+    } catch (err) {
+      console.error('Failed to load services:', err);
+    } finally {
+      setServicesLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (settings) {
       setFormData(settings);
     }
+    fetchServices();
   }, [settings]);
 
   const handleChange = (field: keyof CompanySettings, value: any) => {
@@ -104,6 +132,72 @@ export const Settings: React.FC = () => {
     }
   };
 
+  // Service CRUD Handlers
+  const handleOpenAddService = () => {
+    setEditingService({
+      name: '',
+      description: '',
+      hsnSac: '998898',
+      defaultRate: 15,
+      unit: 'Gram',
+      defaultGstRate: 18,
+    });
+    setServiceError(null);
+    setServiceModalOpen(true);
+  };
+
+  const handleOpenEditService = (item: ServiceItem) => {
+    setEditingService(item);
+    setServiceError(null);
+    setServiceModalOpen(true);
+  };
+
+  const handleDeleteService = async (id: string, name: string) => {
+    if (!window.confirm(`Are you sure you want to delete "${name}" from the library?`)) return;
+    try {
+      await api.delete(`/services/${id}`);
+      fetchServices();
+    } catch (err: any) {
+      alert(err.response?.data?.error || 'Failed to delete service item');
+    }
+  };
+
+  const handleSaveService = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingService?.name?.trim()) {
+      setServiceError('Item name is required.');
+      return;
+    }
+
+    setServiceSaving(true);
+    setServiceError(null);
+
+    try {
+      const payload = {
+        name: editingService.name.trim(),
+        description: editingService.description?.trim() || null,
+        hsnSac: editingService.hsnSac?.trim() || null,
+        defaultRate: Number(editingService.defaultRate) || 0,
+        unit: editingService.unit?.trim() || 'Nos',
+        defaultGstRate: Number(editingService.defaultGstRate) || 18,
+      };
+
+      if (editingService.id) {
+        await api.put(`/services/${editingService.id}`, payload);
+      } else {
+        await api.post('/services', payload);
+      }
+
+      setServiceModalOpen(false);
+      setEditingService(null);
+      fetchServices();
+    } catch (err: any) {
+      setServiceError(err.response?.data?.error || 'Failed to save service item');
+    } finally {
+      setServiceSaving(false);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Header Bar */}
@@ -111,7 +205,7 @@ export const Settings: React.FC = () => {
         <div>
           <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">System Settings & Branding</h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Configure supplier company profile, bank accounts, Indian GST series, appearance, and invoice template toggles.
+            Configure supplier company profile, bank accounts, 3D printing HSN/SAC codes, appearance, and invoice toggles.
           </p>
         </div>
 
@@ -185,6 +279,117 @@ export const Settings: React.FC = () => {
               );
             })}
           </div>
+        </div>
+      </div>
+
+      {/* 3D Printing & Products / HSN-SAC Master Library Section */}
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4 transition-colors">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
+          <div className="flex items-center gap-2">
+            <Boxes className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            <div>
+              <h2 className="text-sm font-bold text-slate-900 dark:text-white">3D Printing & Products / HSN-SAC Master Library</h2>
+              <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                Pre-configured statutory HSN (Goods) & SAC (Services) codes with default pricing and units.
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleOpenAddService}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-sm transition-all self-start sm:self-auto"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Add Item / Service</span>
+          </button>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs text-left">
+            <thead className="bg-slate-50/80 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-semibold">
+              <tr>
+                <th className="py-2.5 px-3">Item / Service Name</th>
+                <th className="py-2.5 px-3">Type</th>
+                <th className="py-2.5 px-3">HSN / SAC Code</th>
+                <th className="py-2.5 px-3">Default Rate</th>
+                <th className="py-2.5 px-3">Unit</th>
+                <th className="py-2.5 px-3 text-center">GST Rate</th>
+                <th className="py-2.5 px-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              {services.map((svc) => {
+                const isService = svc.hsnSac?.startsWith('99');
+                return (
+                  <tr key={svc.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+                    <td className="py-3 px-3">
+                      <div className="font-semibold text-slate-900 dark:text-slate-100">{svc.name}</div>
+                      {svc.description && (
+                        <div className="text-[10px] text-slate-400 dark:text-slate-500 truncate max-w-[280px]">
+                          {svc.description}
+                        </div>
+                      )}
+                    </td>
+                    <td className="py-3 px-3">
+                      <span
+                        className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${
+                          isService
+                            ? 'bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-900/60'
+                            : 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/60'
+                        }`}
+                      >
+                        {isService ? 'SAC (Service)' : 'HSN (Goods)'}
+                      </span>
+                    </td>
+                    <td className="py-3 px-3">
+                      <span className="font-mono font-bold text-xs text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 px-2 py-0.5 rounded border border-blue-200/80 dark:border-blue-900/50">
+                        {svc.hsnSac || '-'}
+                      </span>
+                    </td>
+                    <td className="py-3 px-3 font-mono font-bold text-slate-900 dark:text-slate-100">
+                      ₹{svc.defaultRate.toLocaleString('en-IN')}
+                    </td>
+                    <td className="py-3 px-3 text-slate-600 dark:text-slate-400 font-medium">
+                      /{svc.unit}
+                    </td>
+                    <td className="py-3 px-3 text-center">
+                      <span className="font-mono text-xs font-semibold text-slate-700 dark:text-slate-300">
+                        {svc.defaultGstRate}%
+                      </span>
+                    </td>
+                    <td className="py-3 px-3 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEditService(svc)}
+                          className="p-1 rounded-lg text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50 transition-colors"
+                          title="Edit Service"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteService(svc.id, svc.name)}
+                          className="p-1 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition-colors"
+                          title="Delete Service"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+              {services.length === 0 && !servicesLoading && (
+                <tr>
+                  <td colSpan={7} className="py-8 text-center text-slate-400 dark:text-slate-500">
+                    No services in library. Click "Add Item / Service" above to add your first 3D printing item.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -452,7 +657,7 @@ export const Settings: React.FC = () => {
               {formData.signatureUrl && (
                 <img src={formData.signatureUrl} alt="Signature" className="h-8 max-w-[120px] object-contain border p-0.5 rounded bg-white" />
               )}
-              <label className="cursor-pointer px-3 py-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400 bg-white dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl transition-colors shadow-sm">
+              <label className="cursor-pointer px-3.5 py-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400 bg-white dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl transition-colors shadow-sm">
                 <Upload className="w-3.5 h-3.5 inline mr-1" />
                 Upload Signature
                 <input
@@ -501,11 +706,11 @@ export const Settings: React.FC = () => {
         </div>
       </form>
 
-      {/* E. Admin Security */}
+      {/* F. Admin Security */}
       <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4 transition-colors">
         <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
           <Lock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-          <h2 className="text-sm font-bold text-slate-900 dark:text-white">E. Admin Account Security</h2>
+          <h2 className="text-sm font-bold text-slate-900 dark:text-white">F. Admin Account Security</h2>
         </div>
 
         {passwordMsg && (
@@ -562,6 +767,147 @@ export const Settings: React.FC = () => {
           </div>
         </form>
       </div>
+
+      {/* Service / Item Add or Edit Modal */}
+      {serviceModalOpen && editingService && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl max-w-md w-full overflow-hidden border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200 text-slate-800 dark:text-slate-100">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40">
+              <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-sm">
+                <Boxes className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                <span>{editingService.id ? 'Edit Item / Service' : 'Add 3D Service or Product'}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setServiceModalOpen(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveService} className="p-6 space-y-4">
+              {serviceError && (
+                <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-700 dark:text-rose-400 text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{serviceError}</span>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Item / Service Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. 3D Printing Service / Custom Key Chains"
+                  value={editingService.name || ''}
+                  onChange={(e) => setEditingService({ ...editingService, name: e.target.value })}
+                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Description / Specifications
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. FDM Additive manufacturing in PLA/PETG"
+                  value={editingService.description || ''}
+                  onChange={(e) => setEditingService({ ...editingService, description: e.target.value })}
+                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    HSN or SAC Code *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. 998898 or 39169090"
+                    value={editingService.hsnSac || ''}
+                    onChange={(e) => setEditingService({ ...editingService, hsnSac: e.target.value })}
+                    className="w-full px-3.5 py-2 text-xs font-mono font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-blue-700 dark:text-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                  />
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500 block mt-0.5">
+                    99XXXX = SAC (Service), 39XXXX = HSN (Goods)
+                  </span>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Default Unit
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Gram, Nos, Spool, Hour, Project"
+                    value={editingService.unit || 'Nos'}
+                    onChange={(e) => setEditingService({ ...editingService, unit: e.target.value })}
+                    className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Default Rate (₹)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    required
+                    value={editingService.defaultRate ?? 0}
+                    onChange={(e) => setEditingService({ ...editingService, defaultRate: Number(e.target.value) })}
+                    className="w-full px-3.5 py-2 text-xs font-mono font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Default GST Rate (%)
+                  </label>
+                  <select
+                    value={editingService.defaultGstRate ?? 18}
+                    onChange={(e) => setEditingService({ ...editingService, defaultGstRate: Number(e.target.value) })}
+                    className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                  >
+                    <option value={18}>18% (Standard GST)</option>
+                    <option value={12}>12% (Job work / notified)</option>
+                    <option value={5}>5% (Special reduced)</option>
+                    <option value={28}>28% (Luxury)</option>
+                    <option value={0}>0% (Nil / Exempt)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setServiceModalOpen(false)}
+                  disabled={serviceSaving}
+                  className="px-4 py-2 text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={serviceSaving}
+                  className="flex items-center gap-1.5 px-5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-semibold rounded-xl shadow-md shadow-blue-500/20 transition-all disabled:opacity-50"
+                >
+                  <Save className="w-3.5 h-3.5" />
+                  <span>{serviceSaving ? 'Saving...' : 'Save Service / Item'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

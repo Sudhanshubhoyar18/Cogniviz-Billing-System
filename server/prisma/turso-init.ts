@@ -263,28 +263,34 @@ async function initTurso() {
   });
   console.log('✅ Company settings seeded on Turso!');
 
-  // Seed Services Library
-  const existingServices = await client.execute('SELECT COUNT(*) as count FROM "ServiceItem";');
-  const count = Number(existingServices.rows[0].count) || 0;
+  // Seed 3D Printing & Manufacturing Services & Products Library
+  const services = [
+    ['svc_3d_1', '3D Printing Service', 'Standard FDM/SLA/SLS additive manufacturing service including setup, printing, and post-processing.', '998898', 15, 'Gram', 18],
+    ['svc_3d_2', 'Basic 3D Printing Service', 'Rapid prototyping and draft print service for proof-of-concept models and test fits.', '998898', 8, 'Gram', 18],
+    ['svc_3d_3', '3D Modelling & CAD Design', '3D parametric modeling, reverse engineering, CAD drafting, and print-ready STL/STEP file preparation.', '998391', 1200, 'Hour', 18],
+    ['svc_3d_4', '3D Printing Filament Reselling', 'High-grade thermoplastic 3D printer filament (1.75mm PLA / PETG / ABS / TPU 1kg spool).', '39169090', 950, 'Spool', 18],
+    ['svc_3d_5', 'Custom Product Development', 'End-to-end product design, functional prototyping, iterative DFAM development, and pilot batching.', '998333', 15000, 'Project', 18],
+    ['svc_3d_6', 'Custom 3D Printed Key Chains', 'Customized embossed or dual-color personalized 3D printed key chains with metal ring.', '39269099', 75, 'Nos', 18],
+    ['svc_3d_7', 'Home Decors & Ornamental Products', '3D printed aesthetic home decor items, planters, lithophane lamps, and modern decorative vases.', '39264049', 650, 'Nos', 18],
+    ['svc_3d_8', 'Custom Parts & Components', 'Functional precision plastic components, replacement gears, mounting brackets, and enclosures.', '39269099', 350, 'Nos', 18],
+    ['svc_3d_9', '3D Printing with Customer Filament', 'Job-work 3D printing service using customer-supplied raw material / filament (labor & machine time).', '998873', 60, 'Hour', 18],
+  ];
 
-  if (count === 0) {
-    const services = [
-      ['svc_1', 'Custom Web & Mobile App Development', 'Full-stack software engineering, architecture, frontend & backend implementation.', '998314', 75000, 'Month', 18],
-      ['svc_2', 'AI & Machine Learning Consulting', 'Specialized enterprise AI integration, model fine-tuning, and prompt workflow automation.', '998313', 50000, 'Project', 18],
-      ['svc_3', 'Cloud Infrastructure & DevOps Setup', 'Docker, CI/CD pipeline automation, Render/AWS cluster provisioning, and security hardening.', '998315', 35000, 'Nos', 18],
-      ['svc_4', 'UI/UX Design & Prototyping', 'High-fidelity Figma design systems, wireframing, and interactive product prototypes.', '998399', 25000, 'Sprint', 18],
-      ['svc_5', 'Software Maintenance & Support Retainer', 'Monthly technical support, bug fixing, security updates, and performance monitoring.', '998316', 20000, 'Month', 18],
-    ];
-
-    for (const [id, name, desc, hsn, rate, unit, gst] of services) {
-      await client.execute({
-        sql: `INSERT INTO "ServiceItem" ("id", "name", "description", "hsnSac", "defaultRate", "unit", "defaultGstRate", "updatedAt")
-              VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP);`,
-        args: [id, name, desc, hsn, rate, unit, gst],
-      });
-    }
-    console.log('✅ Default Services/Items library seeded on Turso!');
+  for (const [id, name, desc, hsn, rate, unit, gst] of services) {
+    await client.execute({
+      sql: `INSERT INTO "ServiceItem" ("id", "name", "description", "hsnSac", "defaultRate", "unit", "defaultGstRate", "updatedAt")
+            VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT("id") DO UPDATE SET
+              "name" = excluded."name",
+              "description" = excluded."description",
+              "hsnSac" = excluded."hsnSac",
+              "defaultRate" = excluded."defaultRate",
+              "unit" = excluded."unit",
+              "defaultGstRate" = excluded."defaultGstRate";`,
+      args: [id, name, desc, hsn, rate, unit, gst],
+    });
   }
+  console.log('✅ 3D Printing & Product Services library seeded on Turso!');
 
   console.log('🎉 Turso cloud database is 100% ready for production!');
 }

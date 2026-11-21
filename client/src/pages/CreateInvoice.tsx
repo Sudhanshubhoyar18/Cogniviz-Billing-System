@@ -69,14 +69,14 @@ export const CreateInvoice: React.FC = () => {
   const [items, setItems] = useState<InvoiceItem[]>([
     {
       serialNumber: 1,
-      description: 'Custom Web & Mobile App Development',
-      hsnSac: '998314',
-      quantity: 1,
-      unit: 'Month',
-      rate: 75000,
-      taxableAmount: 75000,
+      description: '3D Printing Service - Standard FDM Additive Manufacturing',
+      hsnSac: '998898',
+      quantity: 100,
+      unit: 'Gram',
+      rate: 15,
+      taxableAmount: 1500,
       gstRate: 18,
-      totalAmount: 88500,
+      totalAmount: 1770,
     },
   ]);
 
@@ -848,15 +848,15 @@ export const CreateInvoice: React.FC = () => {
                     </span>
 
                     {/* Quick Pick from Services Library */}
-                    <div className="flex items-center gap-2 flex-1 max-w-xs">
+                    <div className="flex items-center gap-2 flex-1 max-w-sm">
                       <select
                         onChange={(e) => handleSelectServiceFromLibrary(idx, e.target.value)}
-                        className="w-full px-2 py-1 text-[11px] rounded-lg border border-slate-200 bg-white text-slate-700 focus:outline-none"
+                        className="w-full px-2.5 py-1 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus:outline-none"
                       >
-                        <option value="">⚡ Pick from Services Library...</option>
+                        <option value="">⚡ Pick 3D Service / Product Library...</option>
                         {servicesLibrary.map(s => (
                           <option key={s.id} value={s.id}>
-                            {s.name} (₹{s.defaultRate.toLocaleString('en-IN')})
+                            {s.name} • {s.hsnSac ? `[${s.hsnSac.startsWith('99') ? 'SAC' : 'HSN'}: ${s.hsnSac}]` : ''} (₹{s.defaultRate}/{s.unit})
                           </option>
                         ))}
                       </select>
