@@ -46,18 +46,18 @@ export const Payments: React.FC = () => {
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm transition-colors">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">Payment Collections</h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Payment Collections</h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             Track incoming payments, receipts, and client settlement transactions.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="bg-emerald-50 border border-emerald-200/70 px-4 py-2 rounded-xl text-right">
-            <span className="text-[10px] text-emerald-600 block uppercase font-bold">Total Collected</span>
-            <span className="text-sm font-bold font-mono text-emerald-800">{formatCurrency(totalCollected)}</span>
+          <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/70 dark:border-emerald-800/60 px-4 py-2 rounded-xl text-right">
+            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 block uppercase font-bold">Total Collected</span>
+            <span className="text-sm font-bold font-mono text-emerald-800 dark:text-emerald-300">{formatCurrency(totalCollected)}</span>
           </div>
 
           <button
@@ -69,7 +69,7 @@ export const Payments: React.FC = () => {
                 alert('No pending or partially paid invoices found.');
               }
             }}
-            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-md shadow-blue-500/20 transition-all"
+            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs font-semibold shadow-md shadow-blue-500/20 transition-all"
           >
             <Plus className="w-4 h-4" />
             <span>Record Payment</span>
@@ -78,10 +78,10 @@ export const Payments: React.FC = () => {
       </div>
 
       {/* Payments Table */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden transition-colors">
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left">
-            <thead className="bg-slate-50/80 border-b border-slate-100 text-slate-500 font-semibold">
+            <thead className="bg-slate-50/80 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-semibold">
               <tr>
                 <th className="py-3.5 px-4">Receipt #</th>
                 <th className="py-3.5 px-4">Payment Date</th>
@@ -92,40 +92,40 @@ export const Payments: React.FC = () => {
                 <th className="py-3.5 px-4 text-right">Amount Received</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {payments.map((p) => (
-                <tr key={p.id} className="hover:bg-slate-50/60 transition-colors">
-                  <td className="py-3.5 px-4 font-mono font-bold text-slate-700">
+                <tr key={p.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+                  <td className="py-3.5 px-4 font-mono font-bold text-slate-700 dark:text-slate-300">
                     {p.receiptNumber || 'RCP'}
                   </td>
-                  <td className="py-3.5 px-4 text-slate-500">
+                  <td className="py-3.5 px-4 text-slate-500 dark:text-slate-400">
                     {formatDate(p.paymentDate)}
                   </td>
-                  <td className="py-3.5 px-4 font-semibold text-slate-900">
+                  <td className="py-3.5 px-4 font-semibold text-slate-900 dark:text-slate-100 font-mono">
                     {p.invoice?.invoiceNumber}
                   </td>
                   <td className="py-3.5 px-4">
-                    <div className="font-semibold text-slate-800">{p.customer?.name || 'Customer'}</div>
+                    <div className="font-semibold text-slate-800 dark:text-slate-200">{p.customer?.name || 'Customer'}</div>
                     {p.customer?.companyName && (
-                      <div className="text-[10px] text-slate-400">{p.customer.companyName}</div>
+                      <div className="text-[10px] text-slate-400 dark:text-slate-500">{p.customer.companyName}</div>
                     )}
                   </td>
                   <td className="py-3.5 px-4">
-                    <span className="inline-block px-2.5 py-0.5 rounded-lg text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                    <span className="inline-block px-2.5 py-0.5 rounded-lg text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                       {p.paymentMethod}
                     </span>
                   </td>
-                  <td className="py-3.5 px-4 font-mono text-[11px] text-slate-500">
+                  <td className="py-3.5 px-4 font-mono text-[11px] text-slate-500 dark:text-slate-400">
                     {p.transactionRef || '-'}
                   </td>
-                  <td className="py-3.5 px-4 text-right font-mono font-bold text-emerald-600 text-sm">
+                  <td className="py-3.5 px-4 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400 text-sm">
                     {formatCurrency(p.amount)}
                   </td>
                 </tr>
               ))}
               {!loading && payments.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
+                  <td colSpan={7} className="py-12 text-center text-slate-400 dark:text-slate-500">
                     No payment receipts recorded yet. Click "Record Payment" to record a collection.
                   </td>
                 </tr>

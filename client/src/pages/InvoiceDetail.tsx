@@ -80,23 +80,23 @@ export const InvoiceDetail: React.FC = () => {
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Top Action Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm print:hidden">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm print:hidden transition-colors">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate('/invoices')}
-            className="p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+            className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
             <div className="flex items-center gap-2.5">
-              <h1 className="text-lg font-bold text-slate-900">{invoice.invoiceNumber}</h1>
+              <h1 className="text-lg font-bold text-slate-900 dark:text-white font-mono">{invoice.invoiceNumber}</h1>
               <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${badge.bg}`}>
                 <span className={`w-1.5 h-1.5 rounded-full ${badge.dot}`}></span>
                 {badge.label}
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
               Issued on {formatDate(invoice.invoiceDate)} to {invoice.customer?.name || 'Customer'}
             </p>
           </div>
@@ -118,7 +118,7 @@ export const InvoiceDetail: React.FC = () => {
           {invoice.status !== 'PAID' && invoice.status !== 'CANCELLED' && (
             <button
               onClick={() => setPaymentModalOpen(true)}
-              className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-md shadow-blue-500/20 transition-all"
+              className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs font-semibold shadow-md shadow-blue-500/20 transition-all"
             >
               <CreditCard className="w-4 h-4" />
               <span>Record Payment</span>
@@ -130,36 +130,36 @@ export const InvoiceDetail: React.FC = () => {
             href={`/api/invoices/${invoice.id}/pdf`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all"
+            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl transition-all"
           >
-            <Download className="w-4 h-4 text-slate-500" />
+            <Download className="w-4 h-4 text-slate-500 dark:text-slate-400" />
             <span>PDF</span>
           </a>
 
           {/* Print */}
           <button
             onClick={handlePrint}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all"
+            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl transition-all"
           >
-            <Printer className="w-4 h-4 text-slate-500" />
+            <Printer className="w-4 h-4 text-slate-500 dark:text-slate-400" />
             <span>Print</span>
           </button>
 
           {/* Email */}
           <button
             onClick={() => setEmailModalOpen(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all"
+            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl transition-all"
           >
-            <Mail className="w-4 h-4 text-slate-500" />
+            <Mail className="w-4 h-4 text-slate-500 dark:text-slate-400" />
             <span>Email</span>
           </button>
 
           {/* WhatsApp */}
           <button
             onClick={() => setWhatsAppModalOpen(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all"
+            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl transition-all"
           >
-            <MessageSquare className="w-4 h-4 text-emerald-600" />
+            <MessageSquare className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             <span>WhatsApp</span>
           </button>
         </div>
@@ -203,21 +203,21 @@ export const InvoiceDetail: React.FC = () => {
         {/* Right: Payment Ledger & Audit Timeline (4 Cols) */}
         <div className="lg:col-span-4 space-y-6 print:hidden">
           {/* Balance Summary Card */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
-            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wide">
+          <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-3 transition-colors">
+            <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wide">
               Payment Summary
             </h3>
 
             <div className="space-y-2 text-xs">
-              <div className="flex justify-between text-slate-500">
+              <div className="flex justify-between text-slate-500 dark:text-slate-400">
                 <span>Grand Total:</span>
-                <span className="font-mono font-bold text-slate-900">{formatCurrency(invoice.grandTotal)}</span>
+                <span className="font-mono font-bold text-slate-900 dark:text-white">{formatCurrency(invoice.grandTotal)}</span>
               </div>
-              <div className="flex justify-between text-emerald-600 font-semibold">
+              <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-semibold">
                 <span>Amount Collected:</span>
                 <span className="font-mono">{formatCurrency(invoice.amountReceived)}</span>
               </div>
-              <div className="flex justify-between border-t border-slate-100 pt-2 text-blue-700 font-bold text-sm">
+              <div className="flex justify-between border-t border-slate-100 dark:border-slate-800 pt-2 text-blue-700 dark:text-blue-400 font-bold text-sm">
                 <span>Outstanding Balance:</span>
                 <span className="font-mono">{formatCurrency(invoice.outstandingBalance)}</span>
               </div>
@@ -225,45 +225,45 @@ export const InvoiceDetail: React.FC = () => {
           </div>
 
           {/* Payment History */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
+          <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-3 transition-colors">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wide flex items-center gap-1.5">
-                <CreditCard className="w-3.5 h-3.5 text-blue-600" />
+              <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wide flex items-center gap-1.5">
+                <CreditCard className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                 <span>Recorded Receipts</span>
               </h3>
-              <span className="text-[10px] text-slate-400 font-medium">
+              <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
                 {invoice.payments?.length || 0} payment(s)
               </span>
             </div>
 
             <div className="space-y-2.5">
               {(invoice.payments || []).map((p) => (
-                <div key={p.id} className="p-3 rounded-xl bg-slate-50 border border-slate-200/70 text-xs space-y-1">
+                <div key={p.id} className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700 text-xs space-y-1">
                   <div className="flex justify-between items-center">
-                    <span className="font-mono text-[10px] font-bold text-slate-500">{p.receiptNumber}</span>
-                    <span className="font-mono font-bold text-emerald-600">{formatCurrency(p.amount)}</span>
+                    <span className="font-mono text-[10px] font-bold text-slate-500 dark:text-slate-400">{p.receiptNumber}</span>
+                    <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(p.amount)}</span>
                   </div>
-                  <div className="flex justify-between text-[11px] text-slate-500">
+                  <div className="flex justify-between text-[11px] text-slate-500 dark:text-slate-400">
                     <span>{formatDate(p.paymentDate)}</span>
-                    <span className="font-medium text-slate-700">{p.paymentMethod}</span>
+                    <span className="font-medium text-slate-700 dark:text-slate-300">{p.paymentMethod}</span>
                   </div>
                   {p.transactionRef && (
-                    <div className="text-[10px] font-mono text-slate-400 truncate">
+                    <div className="text-[10px] font-mono text-slate-400 dark:text-slate-500 truncate">
                       Ref: {p.transactionRef}
                     </div>
                   )}
                 </div>
               ))}
               {(!invoice.payments || invoice.payments.length === 0) && (
-                <p className="text-xs text-slate-400 text-center py-3">No payments recorded yet.</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500 text-center py-3">No payments recorded yet.</p>
               )}
             </div>
           </div>
 
           {/* Audit Trail */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
-            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wide flex items-center gap-1.5">
-              <History className="w-3.5 h-3.5 text-slate-500" />
+          <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-3 transition-colors">
+            <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wide flex items-center gap-1.5">
+              <History className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
               <span>Document Audit Trail</span>
             </h3>
 
@@ -271,10 +271,10 @@ export const InvoiceDetail: React.FC = () => {
               {(invoice.auditLogs || []).map((log) => (
                 <div key={log.id} className="text-xs border-l-2 border-blue-500 pl-3 py-0.5 space-y-0.5">
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold text-slate-800 text-[11px]">{log.action}</span>
-                    <span className="text-[10px] text-slate-400">{formatDate(log.createdAt)}</span>
+                    <span className="font-semibold text-slate-800 dark:text-slate-200 text-[11px]">{log.action}</span>
+                    <span className="text-[10px] text-slate-400 dark:text-slate-500">{formatDate(log.createdAt)}</span>
                   </div>
-                  <p className="text-[11px] text-slate-600">{log.details}</p>
+                  <p className="text-[11px] text-slate-600 dark:text-slate-400">{log.details}</p>
                 </div>
               ))}
             </div>
