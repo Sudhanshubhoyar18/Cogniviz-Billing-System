@@ -4,11 +4,26 @@ import App from './App';
 import './index.css';
 
 // Register Service Worker for PWA (Phone App direct installation)
-if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch((err) => {
-      console.log('SW registration note:', err);
-    });
+    navigator.serviceWorker
+      .register('/sw.js')
+      .then((registration) => {
+        // Auto-check for updates on load
+        registration.update().catch(() => {});
+      })
+      .catch((err) => {
+        console.log('SW registration note:', err);
+      });
+  });
+
+  // Reload page when new service worker takes over to load fresh assets
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    // Avoid infinite loop if already reloaded
+    if (!sessionStorage.getItem('sw_reloaded')) {
+      sessionStorage.setItem('sw_reloaded', 'true');
+      window.location.reload();
+    }
   });
 }
 

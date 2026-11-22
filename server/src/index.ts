@@ -79,10 +79,27 @@ app.use('/api/upload', uploadRoutes);
 const clientDist = path.resolve(__dirname, '../../client/dist');
 if (fs.existsSync(clientDist)) {
   app.use(express.static(clientDist));
+
+  // Handle SPA routing
   app.get('*', (req, res, next) => {
+    // Never send HTML for API or uploads
     if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
       return next();
     }
+
+    // Do NOT send index.html for missing static assets (js, css, images, maps)
+    // Sending HTML for missing .js files causes "Unexpected token '<'" browser fatal error
+    if (
+      req.path.startsWith('/assets/') ||
+      /\.(js|css|map|png|jpg|jpeg|svg|ico|json|woff2?|ttf)$/i.test(req.path)
+    ) {
+      return res.status(404).type('text/plain').send('Asset not found');
+    }
+
+    // Never cache index.html so browser always gets the latest asset hash references
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
     res.sendFile(path.join(clientDist, 'index.html'));
   });
 }

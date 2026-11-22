@@ -27,6 +27,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const savedUser = localStorage.getItem('cogniviz_admin_user');
 
     if (savedToken && savedUser) {
+      // Safety timeout so user is never blocked on blank/loading screen
+      const safetyTimer = setTimeout(() => {
+        setLoading(false);
+      }, 5000);
+
       try {
         setUser(JSON.parse(savedUser));
         // Verify with backend
@@ -38,8 +43,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .catch(() => {
             logout();
           })
-          .finally(() => setLoading(false));
+          .finally(() => {
+            clearTimeout(safetyTimer);
+            setLoading(false);
+          });
       } catch (e) {
+        clearTimeout(safetyTimer);
         logout();
         setLoading(false);
       }
