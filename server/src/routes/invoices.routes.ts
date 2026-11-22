@@ -663,7 +663,13 @@ router.post('/:id/send-email', requireAuth, async (req: AuthenticatedRequest, re
     if (!invoice) return res.status(404).json({ error: 'Invoice not found.' });
 
     const settings = await prisma.companySettings.findUnique({ where: { id: 'default' } });
-    const { filePath } = await generateInvoicePdf(invoice, settings);
+    let pdfPath: string | undefined = undefined;
+    try {
+      const pdfRes = await generateInvoicePdf(invoice, settings);
+      pdfPath = pdfRes.filePath;
+    } catch (pdfErr: any) {
+      console.warn('PDF attachment generation deferred for email:', pdfErr?.message);
+    }
 
     const targetEmail = recipientEmail || invoice.customer?.email;
     if (!targetEmail) {
@@ -675,7 +681,7 @@ router.post('/:id/send-email', requireAuth, async (req: AuthenticatedRequest, re
       customerName: invoice.customer?.name || 'Valued Customer',
       invoiceNumber: invoice.invoiceNumber,
       grandTotal: invoice.grandTotal,
-      pdfPath: filePath,
+      pdfPath,
       customSubject: subject,
       customMessage: message,
     });

@@ -76,9 +76,9 @@ export const SendEmailModal: React.FC<SendEmailModalProps> = ({
 
         <form onSubmit={handleSend} className="p-6 space-y-4">
           {error && (
-            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2">
+            <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-              <span>{error}</span>
+              <span className="whitespace-pre-line leading-relaxed">{error}</span>
             </div>
           )}
 
