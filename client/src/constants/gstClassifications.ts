@@ -80,3 +80,4 @@ export function detectHsnSacType(code?: string | null): 'HSN' | 'SAC' | null {
   if (/^[0-9]{2,8}$/.test(clean)) return 'HSN';
   return null;
 }
+
