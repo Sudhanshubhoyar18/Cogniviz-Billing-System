@@ -118,9 +118,22 @@ router.post('/', requireAuth, async (req: AuthenticatedRequest, res: Response) =
       return res.status(400).json({ error: 'At least one invoice item/service is required.' });
     }
 
-    const settings = await prisma.companySettings.findUnique({ where: { id: 'default' } });
+    let settings = await prisma.companySettings.findUnique({ where: { id: 'default' } });
     if (!settings) {
-      return res.status(500).json({ error: 'Company settings not found. Please configure settings first.' });
+      settings = await prisma.companySettings.create({
+        data: {
+          id: 'default',
+          companyName: 'Cogniviz Technologies',
+          tagline: '"AI TO SIMPLIFY, TECH TO AMPLIFY"',
+          gstin: '27ABCDE1234F1Z5',
+          address: 'Gurunanak Pura, Nagpur',
+          state: 'Maharashtra',
+          stateCode: '27',
+          country: 'India',
+          email: 'contact.cogniviz@gmail.com',
+          phone: '+91-9373879915',
+        },
+      });
     }
 
     let finalCustomerId = customerId;
@@ -162,9 +175,30 @@ router.post('/', requireAuth, async (req: AuthenticatedRequest, res: Response) =
     const calc = calculateInvoiceTotals(processedItems, isInterstate, discount, otherCharges);
     const words = numberToIndianWords(calc.grandTotal);
 
-    const existing = await prisma.invoice.findUnique({ where: { invoiceNumber } });
-    if (existing) {
-      return res.status(400).json({ error: `Invoice number ${invoiceNumber} already exists. Please pick a new number.` });
+    let finalInvoiceNumber = (invoiceNumber || '').trim();
+    if (!finalInvoiceNumber) {
+      const prefix = settings.invoicePrefix || 'INV';
+      const fy = settings.financialYear || '2026-27';
+      let nextNum = settings.invoiceNextNumber || 1;
+      let candidate = `${prefix}/${fy}/${String(nextNum).padStart(3, '0')}`;
+      while (await prisma.invoice.findUnique({ where: { invoiceNumber: candidate } })) {
+        nextNum += 1;
+        candidate = `${prefix}/${fy}/${String(nextNum).padStart(3, '0')}`;
+      }
+      finalInvoiceNumber = candidate;
+    } else {
+      let existing = await prisma.invoice.findUnique({ where: { invoiceNumber: finalInvoiceNumber } });
+      if (existing) {
+        const prefix = settings.invoicePrefix || 'INV';
+        const fy = settings.financialYear || '2026-27';
+        let nextNum = (settings.invoiceNextNumber || 1);
+        let candidate = `${prefix}/${fy}/${String(nextNum).padStart(3, '0')}`;
+        while (await prisma.invoice.findUnique({ where: { invoiceNumber: candidate } })) {
+          nextNum += 1;
+          candidate = `${prefix}/${fy}/${String(nextNum).padStart(3, '0')}`;
+        }
+        finalInvoiceNumber = candidate;
+      }
     }
 
     const customerSnapshot = customerRecord ? JSON.stringify(customerRecord) : null;
@@ -172,7 +206,7 @@ router.post('/', requireAuth, async (req: AuthenticatedRequest, res: Response) =
 
     const newInvoice = await prisma.invoice.create({
       data: {
-        invoiceNumber,
+        invoiceNumber: finalInvoiceNumber,
         invoiceDate: invoiceDate ? new Date(invoiceDate) : new Date(),
         status: status === 'ISSUED' ? 'PENDING' : 'DRAFT',
         customerId: finalCustomerId,
@@ -245,11 +279,10 @@ router.post('/', requireAuth, async (req: AuthenticatedRequest, res: Response) =
     });
 
     if (status === 'ISSUED') {
-      try {
-        await generateInvoicePdf(newInvoice, settings);
-      } catch (pdfErr) {
-        console.warn('PDF generation deferred:', pdfErr);
-      }
+      // Generate in background without delaying response
+      generateInvoicePdf(newInvoice, settings).catch((pdfErr) => {
+        console.warn('Background PDF generation deferred:', pdfErr?.message || pdfErr);
+      });
     }
 
     return res.status(201).json(newInvoice);
@@ -433,11 +466,10 @@ router.post('/:id/issue', requireAuth, async (req: AuthenticatedRequest, res: Re
       include: { items: true, customer: true },
     });
 
-    try {
-      await generateInvoicePdf(issued, settings);
-    } catch (e) {
-      console.warn('PDF generation deferred on issue:', e);
-    }
+    // Generate in background without delaying issue response
+    generateInvoicePdf(issued, settings).catch((e) => {
+      console.warn('PDF generation deferred on issue:', e?.message || e);
+    });
 
     return res.json(issued);
   } catch (err: any) {
@@ -595,12 +627,24 @@ router.get('/:id/pdf', async (req: AuthenticatedRequest, res: Response) => {
     if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
 
     const settings = await prisma.companySettings.findUnique({ where: { id: 'default' } });
-    const { buffer } = await generateInvoicePdf(invoice, settings);
 
-    const safeNum = invoice.invoiceNumber.replace(/[\/\\?%*:|"<>]/g, '_');
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `inline; filename="Invoice_${safeNum}.pdf"`);
-    return res.send(buffer);
+    try {
+      const { buffer } = await generateInvoicePdf(invoice, settings);
+      const safeNum = invoice.invoiceNumber.replace(/[\/\\?%*:|"<>]/g, '_');
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `inline; filename="Invoice_${safeNum}.pdf"`);
+      return res.send(buffer);
+    } catch (pdfErr: any) {
+      // Fallback: render print-ready HTML with auto-print dialog if headless Chromium is not present on host
+      console.warn('PDF binary generation fallback to printable HTML:', pdfErr?.message);
+      const html = compileInvoiceHtml(invoice, settings);
+      const printableHtml = html.replace(
+        '</body>',
+        '<script>window.onload = function() { window.print(); };</script></body>'
+      );
+      res.setHeader('Content-Type', 'text/html');
+      return res.send(printableHtml);
+    }
   } catch (err: any) {
     return res.status(500).json({ error: err.message || 'Failed to generate PDF' });
   }

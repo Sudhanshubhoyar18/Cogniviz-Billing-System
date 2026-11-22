@@ -103,7 +103,15 @@ export const CreateInvoice: React.FC = () => {
 
     // 2. Customers
     api.get('/customers')
-      .then(res => setCustomers(res.data))
+      .then(res => {
+        const list = res.data || [];
+        setCustomers(list);
+        if (list.length > 0) {
+          setSelectedCustomerId(prev => prev || list[0].id);
+        } else {
+          setIsNewCustomer(true);
+        }
+      })
       .catch(err => console.error(err));
 
     // 3. Services library
@@ -263,16 +271,25 @@ export const CreateInvoice: React.FC = () => {
   const handleSaveInvoice = async (status: 'DRAFT' | 'ISSUED') => {
     if (!invoiceNumber.trim()) {
       setError('Invoice number is required.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
-    if (!selectedCustomerId && (!newCustomerName || !newCustomerName.trim())) {
-      setError('Please select an existing customer or enter the new customer name.');
+    if (!isNewCustomer && !selectedCustomerId) {
+      setError('Please select an existing customer or click "+ New Customer" above to enter client details.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    if (isNewCustomer && (!newCustomerName || !newCustomerName.trim())) {
+      setError('Please enter the customer / client name.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
     if (items.some(it => !it.description.trim())) {
       setError('Please provide a description for all line items.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
@@ -328,7 +345,8 @@ export const CreateInvoice: React.FC = () => {
       const res = await api.post('/invoices', payload);
       navigate(`/invoices/${res.data.id}`);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to generate invoice');
+      setError(err.response?.data?.error || 'Failed to generate invoice. Please review all fields.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setSaving(false);
     }
@@ -456,7 +474,11 @@ export const CreateInvoice: React.FC = () => {
                 <select
                   value={selectedCustomerId}
                   onChange={(e) => setSelectedCustomerId(e.target.value)}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white"
+                  className={`w-full px-3.5 py-2 text-xs rounded-xl border focus:outline-none focus:ring-2 bg-white ${
+                    !selectedCustomerId
+                      ? 'border-amber-300 focus:border-amber-500 focus:ring-amber-500/20'
+                      : 'border-slate-200 focus:border-blue-500 focus:ring-blue-500/20'
+                  }`}
                 >
                   <option value="">-- Choose Customer --</option>
                   {customers.map((c) => (
@@ -465,6 +487,11 @@ export const CreateInvoice: React.FC = () => {
                     </option>
                   ))}
                 </select>
+                {!selectedCustomerId && (
+                  <p className="text-[11px] text-amber-600 mt-1.5 font-medium flex items-center gap-1">
+                    <span>⚠️ Select a customer from the dropdown, or click <strong>"+ New Customer"</strong> above.</span>
+                  </p>
+                )}
               </div>
             ) : (
               <div className="space-y-3">
@@ -1052,6 +1079,43 @@ export const CreateInvoice: React.FC = () => {
                 placeholder="e.g. Payment due within 15 days from issue date."
                 className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
               />
+            </div>
+          </div>
+
+          {/* Bottom Action Bar */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
+            <div className="text-xs text-slate-500">
+              Total Amount:{' '}
+              <span className="font-bold font-mono text-slate-900 text-sm">
+                ₹{formatCurrency(grandTotal)}
+              </span>
+              {applyGst && (
+                <span className="text-[11px] text-blue-600 ml-1.5 font-medium">
+                  (Tax Invoice)
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <button
+                type="button"
+                onClick={() => handleSaveInvoice('DRAFT')}
+                disabled={saving}
+                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all disabled:opacity-50"
+              >
+                <Save className="w-4 h-4 text-slate-500" />
+                <span>Save Draft</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleSaveInvoice('ISSUED')}
+                disabled={saving}
+                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md shadow-blue-500/20 transition-all disabled:opacity-50"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>{saving ? 'Issuing...' : 'Generate Invoice'}</span>
+              </button>
             </div>
           </div>
         </div>
