@@ -26,6 +26,11 @@ import api from '../services/api';
 import { useSettings } from '../context/SettingsContext';
 import { useTheme, ThemeMode } from '../context/ThemeContext';
 import { CompanySettings, ServiceItem } from '../types';
+import {
+  GST_CLASSIFICATIONS,
+  getClassificationByCode,
+  detectHsnSacType,
+} from '../constants/gstClassifications';
 
 export const Settings: React.FC = () => {
   const { settings, refreshSettings } = useSettings();
@@ -137,9 +142,9 @@ export const Settings: React.FC = () => {
     setEditingService({
       name: '',
       description: '',
-      hsnSac: '998898',
-      defaultRate: 15,
-      unit: 'Gram',
+      hsnSac: '39169090',
+      defaultRate: 950,
+      unit: 'Spool',
       defaultGstRate: 18,
     });
     setServiceError(null);
@@ -150,6 +155,26 @@ export const Settings: React.FC = () => {
     setEditingService(item);
     setServiceError(null);
     setServiceModalOpen(true);
+  };
+
+  const handleServiceHsnChange = (code: string) => {
+    if (!editingService) return;
+    const matched = getClassificationByCode(code);
+    if (matched) {
+      setEditingService({
+        ...editingService,
+        hsnSac: code,
+        defaultGstRate: matched.gstRate,
+        unit: editingService.unit && editingService.unit !== 'Nos' ? editingService.unit : matched.defaultUnit,
+        name: editingService.name ? editingService.name : matched.description,
+        description: editingService.description ? editingService.description : matched.description,
+      });
+    } else {
+      setEditingService({
+        ...editingService,
+        hsnSac: code,
+      });
+    }
   };
 
   const handleDeleteService = async (id: string, name: string) => {
@@ -320,7 +345,7 @@ export const Settings: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {services.map((svc) => {
-                const isService = svc.hsnSac?.startsWith('99');
+                const isService = svc.hsnSac?.startsWith('99') || detectHsnSacType(svc.hsnSac) === 'SAC';
                 return (
                   <tr key={svc.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
                     <td className="py-3 px-3">
@@ -823,17 +848,38 @@ export const Settings: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    HSN or SAC Code *
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      HSN or SAC Code *
+                    </label>
+                    {editingService.hsnSac && (
+                      <span
+                        className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                          detectHsnSacType(editingService.hsnSac) === 'SAC'
+                            ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300'
+                            : 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
+                        }`}
+                      >
+                        {detectHsnSacType(editingService.hsnSac) === 'SAC' ? 'SAC (Service)' : 'HSN (Goods)'}
+                      </span>
+                    )}
+                  </div>
                   <input
                     type="text"
+                    list="settings-hsn-sac-datalist"
                     required
-                    placeholder="e.g. 998898 or 39169090"
+                    placeholder="e.g. 39169090 or 998920"
                     value={editingService.hsnSac || ''}
-                    onChange={(e) => setEditingService({ ...editingService, hsnSac: e.target.value })}
+                    onChange={(e) => handleServiceHsnChange(e.target.value)}
                     className="w-full px-3.5 py-2 text-xs font-mono font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-blue-700 dark:text-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                   />
+                  <datalist id="settings-hsn-sac-datalist">
+                    {GST_CLASSIFICATIONS.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        [{c.type}] {c.code} — {c.description} ({c.gstRate}%)
+                      </option>
+                    ))}
+                  </datalist>
                   <span className="text-[10px] text-slate-400 dark:text-slate-500 block mt-0.5">
                     99XXXX = SAC (Service), 39XXXX = HSN (Goods)
                   </span>

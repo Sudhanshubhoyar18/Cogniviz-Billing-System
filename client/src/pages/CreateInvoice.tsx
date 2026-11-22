@@ -22,6 +22,11 @@ import { useSettings } from '../context/SettingsContext';
 import { InvoicePreview } from '../components/invoices/InvoicePreview';
 import { numberToIndianWords } from '../utils/numberToWords';
 import { formatCurrency } from '../utils/formatters';
+import {
+  GST_CLASSIFICATIONS,
+  getClassificationByCode,
+  detectHsnSacType,
+} from '../constants/gstClassifications';
 
 export const CreateInvoice: React.FC = () => {
   const navigate = useNavigate();
@@ -197,7 +202,22 @@ export const CreateInvoice: React.FC = () => {
   // Item Table handlers
   const handleItemChange = (index: number, field: keyof InvoiceItem, value: any) => {
     const updated = [...items];
-    updated[index] = { ...updated[index], [field]: value };
+    if (field === 'hsnSac') {
+      const code = String(value || '');
+      const matched = getClassificationByCode(code);
+      if (matched) {
+        // Automatically populate corresponding GST rate when standard classification is selected
+        updated[index] = {
+          ...updated[index],
+          hsnSac: code,
+          gstRate: applyGst ? matched.gstRate : 0,
+        };
+      } else {
+        updated[index] = { ...updated[index], [field]: value };
+      }
+    } else {
+      updated[index] = { ...updated[index], [field]: value };
+    }
     setItems(updated);
   };
 
@@ -887,13 +907,27 @@ export const CreateInvoice: React.FC = () => {
 
                   <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                     <div>
-                      <label className="block text-[10px] text-slate-500 mb-0.5">HSN/SAC</label>
+                      <div className="flex items-center justify-between mb-0.5">
+                        <label className="block text-[10px] text-slate-500 font-medium">HSN/SAC</label>
+                        {item.hsnSac && (
+                          <span
+                            className={`text-[9px] font-bold px-1 rounded ${
+                              detectHsnSacType(item.hsnSac) === 'SAC'
+                                ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300'
+                                : 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
+                            }`}
+                          >
+                            {detectHsnSacType(item.hsnSac) === 'SAC' ? 'SAC (Service)' : 'HSN (Goods)'}
+                          </span>
+                        )}
+                      </div>
                       <input
                         type="text"
-                        placeholder="e.g. 9983"
+                        list="hsn-sac-datalist"
+                        placeholder="e.g. 39169090 or 998920"
                         value={item.hsnSac || ''}
                         onChange={(e) => handleItemChange(idx, 'hsnSac', e.target.value)}
-                        className="w-full px-2.5 py-1 text-xs rounded-lg border border-slate-200 bg-white"
+                        className="w-full px-2.5 py-1 text-xs rounded-lg border border-slate-200 bg-white font-mono"
                       />
                     </div>
 
@@ -962,6 +996,15 @@ export const CreateInvoice: React.FC = () => {
                 </div>
               ))}
             </div>
+
+            {/* Datalist for standard HSN/SAC classifications */}
+            <datalist id="hsn-sac-datalist">
+              {GST_CLASSIFICATIONS.map((c) => (
+                <option key={c.code} value={c.code}>
+                  [{c.type}] {c.code} — {c.description} ({c.gstRate}%)
+                </option>
+              ))}
+            </datalist>
           </div>
 
           {/* SECTION F: Summary Adjustments */}

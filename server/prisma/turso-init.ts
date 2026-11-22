@@ -263,17 +263,20 @@ async function initTurso() {
   });
   console.log('✅ Company settings seeded on Turso!');
 
-  // Seed 3D Printing & Manufacturing Services & Products Library
+  // Seed 3D Printing & Manufacturing Services & Products Library with Statutory GST Classifications
   const services = [
+    ['svc_gst_1', 'PLA / ABS / PETG / TPU 3D Printing Filament Resale', 'High-grade thermoplastic 3D printer filament (1.75mm PLA / PETG / ABS / TPU 1kg spool).', '39169090', 950, 'Spool', 18],
+    ['svc_gst_2', '3D Printing Service – Customer Supplied Filament', 'Job-work 3D printing service using customer-supplied raw material / filament (labor & machine time).', '998920', 60, 'Hour', 18],
+    ['svc_gst_3', '3D Modelling / CAD Design Services', '3D parametric modeling, reverse engineering, CAD drafting, and print-ready STL/STEP file preparation.', '998391', 1200, 'Hour', 18],
+    ['svc_gst_4', 'Plastic Keychains / General Custom Plastic Parts', 'Customized embossed keychains and precision functional plastic components.', '39269099', 75, 'Nos', 18],
+    ['svc_gst_5', 'Plastic Home Decor / Ornamental Products', '3D printed aesthetic home decor items, ornamental products, planters, and decorative vases.', '39264099', 650, 'Nos', 18],
+    ['svc_gst_6', 'Plastic Household Utility Articles', 'Plastic household utility articles, organizers, brackets, kitchen aids, and functional wares.', '39249090', 250, 'Nos', 18],
     ['svc_3d_1', '3D Printing Service', 'Standard FDM/SLA/SLS additive manufacturing service including setup, printing, and post-processing.', '998898', 15, 'Gram', 18],
     ['svc_3d_2', 'Basic 3D Printing Service', 'Rapid prototyping and draft print service for proof-of-concept models and test fits.', '998898', 8, 'Gram', 18],
-    ['svc_3d_3', '3D Modelling & CAD Design', '3D parametric modeling, reverse engineering, CAD drafting, and print-ready STL/STEP file preparation.', '998391', 1200, 'Hour', 18],
-    ['svc_3d_4', '3D Printing Filament Reselling', 'High-grade thermoplastic 3D printer filament (1.75mm PLA / PETG / ABS / TPU 1kg spool).', '39169090', 950, 'Spool', 18],
     ['svc_3d_5', 'Custom Product Development', 'End-to-end product design, functional prototyping, iterative DFAM development, and pilot batching.', '998333', 15000, 'Project', 18],
-    ['svc_3d_6', 'Custom 3D Printed Key Chains', 'Customized embossed or dual-color personalized 3D printed key chains with metal ring.', '39269099', 75, 'Nos', 18],
-    ['svc_3d_7', 'Home Decors & Ornamental Products', '3D printed aesthetic home decor items, planters, lithophane lamps, and modern decorative vases.', '39264049', 650, 'Nos', 18],
-    ['svc_3d_8', 'Custom Parts & Components', 'Functional precision plastic components, replacement gears, mounting brackets, and enclosures.', '39269099', 350, 'Nos', 18],
-    ['svc_3d_9', '3D Printing with Customer Filament', 'Job-work 3D printing service using customer-supplied raw material / filament (labor & machine time).', '998873', 60, 'Hour', 18],
+    ['svc_3d_4', '3D Printing Filament Reselling', 'High-grade thermoplastic 3D printer filament (1.75mm PLA / PETG / ABS / TPU 1kg spool).', '39169090', 950, 'Spool', 18],
+    ['svc_3d_7', 'Home Decors & Ornamental Products', '3D printed aesthetic home decor items, planters, lithophane lamps, and modern decorative vases.', '39264099', 650, 'Nos', 18],
+    ['svc_3d_9', '3D Printing with Customer Filament', 'Job-work 3D printing service using customer-supplied raw material / filament (labor & machine time).', '998920', 60, 'Hour', 18],
   ];
 
   for (const [id, name, desc, hsn, rate, unit, gst] of services) {
