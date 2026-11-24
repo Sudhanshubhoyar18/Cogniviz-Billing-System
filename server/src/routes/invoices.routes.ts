@@ -142,10 +142,27 @@ router.post('/', requireAuth, async (req: AuthenticatedRequest, res: Response) =
     if (customerId) {
       customerRecord = await prisma.customer.findUnique({ where: { id: customerId } });
     } else if (newCustomer && newCustomer.name) {
-      const count = await prisma.customer.count();
+      // Find the next available collision-free customer code
+      const existingCustomers = await prisma.customer.findMany({ select: { customerCode: true } });
+      let maxSeq = 0;
+      for (const c of existingCustomers) {
+        if (c.customerCode && c.customerCode.startsWith('CUST-')) {
+          const num = parseInt(c.customerCode.replace('CUST-', ''), 10);
+          if (!isNaN(num) && num > maxSeq) {
+            maxSeq = num;
+          }
+        }
+      }
+      let nextSeq = maxSeq + 1;
+      let candidate = `CUST-${String(nextSeq).padStart(3, '0')}`;
+      while (await prisma.customer.findUnique({ where: { customerCode: candidate } })) {
+        nextSeq += 1;
+        candidate = `CUST-${String(nextSeq).padStart(3, '0')}`;
+      }
+
       customerRecord = await prisma.customer.create({
         data: {
-          customerCode: `CUST-${String(count + 1).padStart(3, '0')}`,
+          customerCode: candidate,
           name: newCustomer.name.trim(),
           companyName: newCustomer.companyName?.trim() || null,
           gstin: newCustomer.gstin?.trim() || null,

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   FileText,
   Plus,
@@ -30,6 +30,8 @@ import {
 
 export const CreateInvoice: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const preselectedCustomerId = searchParams.get('customerId');
   const { settings } = useSettings();
 
   // Invoice Metadata
@@ -106,7 +108,10 @@ export const CreateInvoice: React.FC = () => {
       .then(res => {
         const list = res.data || [];
         setCustomers(list);
-        if (list.length > 0) {
+        if (preselectedCustomerId && list.some((c: any) => c.id === preselectedCustomerId)) {
+          setSelectedCustomerId(preselectedCustomerId);
+          setIsNewCustomer(false);
+        } else if (list.length > 0) {
           setSelectedCustomerId(prev => prev || list[0].id);
         } else {
           setIsNewCustomer(true);

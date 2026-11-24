@@ -96,9 +96,23 @@ router.post('/', requireAuth, async (req: AuthenticatedRequest, res: Response) =
       return res.status(400).json({ error: 'Customer name is required.' });
     }
 
-    // Auto generate Customer Code
-    const count = await prisma.customer.count();
-    const customerCode = `CUST-${String(count + 1).padStart(3, '0')}`;
+    // Auto generate collision-free Customer Code
+    const existingCustomers = await prisma.customer.findMany({ select: { customerCode: true } });
+    let maxSeq = 0;
+    for (const c of existingCustomers) {
+      if (c.customerCode && c.customerCode.startsWith('CUST-')) {
+        const num = parseInt(c.customerCode.replace('CUST-', ''), 10);
+        if (!isNaN(num) && num > maxSeq) {
+          maxSeq = num;
+        }
+      }
+    }
+    let nextSeq = maxSeq + 1;
+    let customerCode = `CUST-${String(nextSeq).padStart(3, '0')}`;
+    while (await prisma.customer.findUnique({ where: { customerCode } })) {
+      nextSeq += 1;
+      customerCode = `CUST-${String(nextSeq).padStart(3, '0')}`;
+    }
 
     const newCustomer = await prisma.customer.create({
       data: {

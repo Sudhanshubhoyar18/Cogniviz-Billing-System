@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FileText, X, Download, Printer, CreditCard, Receipt } from 'lucide-react';
 import api from '../../services/api';
 import { formatCurrency, formatDate } from '../../utils/formatters';
@@ -16,6 +17,7 @@ export const CustomerStatementModal: React.FC<CustomerStatementModalProps> = ({
 }) => {
   if (!isOpen || !customerId) return null;
 
+  const navigate = useNavigate();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -46,6 +48,16 @@ export const CustomerStatementModal: React.FC<CustomerStatementModalProps> = ({
             <span>Customer Statement & Account Ledger</span>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                onClose();
+                navigate(`/invoices/create?customerId=${data.id}`);
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-all"
+            >
+              <Receipt className="w-3.5 h-3.5" />
+              <span>Create Invoice</span>
+            </button>
             <button
               onClick={() => window.print()}
               className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100"
