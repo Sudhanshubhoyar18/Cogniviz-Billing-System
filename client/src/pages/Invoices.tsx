@@ -12,6 +12,7 @@ import {
   Copy,
   Plus,
   Ban,
+  Trash2,
   Calendar,
   ChevronDown,
 } from 'lucide-react';
@@ -87,6 +88,20 @@ export const Invoices: React.FC = () => {
       fetchInvoices();
     } catch (err: any) {
       alert(err.response?.data?.error || 'Failed to cancel invoice');
+    }
+  };
+
+  const handleDeleteInvoice = async (id: string, invoiceNumber: string) => {
+    if (!window.confirm(`Are you sure you want to permanently delete invoice "${invoiceNumber}"? This will also remove any attached payment records.`)) {
+      return;
+    }
+
+    try {
+      const res = await api.delete(`/invoices/${id}`);
+      alert(res.data.message || `Invoice ${invoiceNumber} deleted successfully.`);
+      fetchInvoices();
+    } catch (err: any) {
+      alert(err.response?.data?.error || 'Failed to delete invoice');
     }
   };
 
@@ -282,12 +297,21 @@ export const Invoices: React.FC = () => {
                         {inv.status !== 'CANCELLED' && (
                           <button
                             onClick={() => handleCancelInvoice(inv.id)}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition-colors"
                             title="Cancel Invoice"
                           >
                             <Ban className="w-3.5 h-3.5" />
                           </button>
                         )}
+
+                        {/* Delete Invoice */}
+                        <button
+                          onClick={() => handleDeleteInvoice(inv.id, inv.invoiceNumber)}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+                          title="Delete Invoice"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
                       </div>
                     </td>
                   </tr>

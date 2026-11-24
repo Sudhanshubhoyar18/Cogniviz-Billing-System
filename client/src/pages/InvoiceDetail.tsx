@@ -13,6 +13,7 @@ import {
   Clock,
   Sparkles,
   AlertCircle,
+  Trash2,
 } from 'lucide-react';
 import api from '../services/api';
 import { Invoice } from '../types';
@@ -65,6 +66,21 @@ export const InvoiceDetail: React.FC = () => {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleDeleteInvoice = async () => {
+    if (!invoice) return;
+    if (!window.confirm(`Are you sure you want to permanently delete invoice "${invoice.invoiceNumber}"? This will also remove any attached payment records.`)) {
+      return;
+    }
+
+    try {
+      const res = await api.delete(`/invoices/${invoice.id}`);
+      alert(res.data.message || `Invoice ${invoice.invoiceNumber} deleted successfully.`);
+      navigate('/invoices');
+    } catch (err: any) {
+      alert(err.response?.data?.error || 'Failed to delete invoice');
+    }
   };
 
   if (loading || !invoice) {
@@ -161,6 +177,16 @@ export const InvoiceDetail: React.FC = () => {
           >
             <MessageSquare className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             <span>WhatsApp</span>
+          </button>
+
+          {/* Delete */}
+          <button
+            onClick={handleDeleteInvoice}
+            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/50 border border-rose-200 dark:border-rose-800 rounded-xl transition-all"
+            title="Delete this Invoice"
+          >
+            <Trash2 className="w-4 h-4" />
+            <span>Delete</span>
           </button>
         </div>
       </div>

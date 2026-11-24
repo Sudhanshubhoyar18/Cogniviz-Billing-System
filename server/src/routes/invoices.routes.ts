@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import { Router, Response } from 'express';
 import { prisma } from '../db.js';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth.middleware.js';
@@ -774,6 +776,50 @@ router.post('/:id/share-whatsapp', requireAuth, async (req: AuthenticatedRequest
     });
   } catch (err: any) {
     return res.status(500).json({ error: err.message || 'Failed to generate WhatsApp share link' });
+  }
+});
+
+// Delete Invoice
+router.delete('/:id', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const invoiceId = String(req.params.id);
+    const invoice = await prisma.invoice.findUnique({
+      where: { id: invoiceId },
+    });
+
+    if (!invoice) {
+      return res.status(404).json({ error: 'Invoice not found.' });
+    }
+
+    // Safely delete invoice and all related records in transaction
+    await prisma.$transaction([
+      prisma.invoiceItem.deleteMany({ where: { invoiceId } }),
+      prisma.invoiceCommunication.deleteMany({ where: { invoiceId } }),
+      prisma.invoiceAuditLog.deleteMany({ where: { invoiceId } }),
+      prisma.payment.deleteMany({ where: { invoiceId } }),
+      prisma.invoice.delete({ where: { id: invoiceId } }),
+    ]);
+
+    // Clean up local PDF file if exists
+    try {
+      const safeNum = invoice.invoiceNumber.replace(/[\/\\?%*:|"<>]/g, '_');
+      const uploadsDir = path.resolve(process.cwd(), 'server/uploads/invoices');
+      const candidatePaths = [
+        path.join(uploadsDir, `Invoice_${safeNum}.pdf`),
+        path.resolve(process.cwd(), `uploads/invoices/Invoice_${safeNum}.pdf`),
+      ];
+      for (const p of candidatePaths) {
+        if (fs.existsSync(p)) {
+          fs.unlinkSync(p);
+        }
+      }
+    } catch (e) {
+      // Ignore PDF deletion failure
+    }
+
+    return res.json({ message: `Invoice ${invoice.invoiceNumber} deleted successfully.` });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || 'Failed to delete invoice' });
   }
 });
 
