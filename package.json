@@ -16,6 +16,7 @@
     "build:client": "cd client && npm run build",
     "build:server": "cd server && npm run build",
     "build": "npm run build:client && npm run build:server",
+    "vercel-build": "npm run build:client && npm run build:server",
     "start": "cd server && npm run start",
     "db:push": "cd server && npx prisma db push",
     "db:seed": "cd server && npm run seed",
@@ -27,7 +28,7 @@
     "gst",
     "invoicing",
     "turso",
-    "render"
+    "vercel"
   ],
   "author": "Cogniviz Technologies",
   "license": "ISC"

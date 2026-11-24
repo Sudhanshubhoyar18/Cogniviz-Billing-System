@@ -8,8 +8,12 @@ import { requireAuth, AuthenticatedRequest } from '../middleware/auth.middleware
 const router = Router();
 
 const uploadDir = path.resolve(__dirname, '../../uploads/branding');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
+try {
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  }
+} catch {
+  // Silent fallback for read-only serverless environment
 }
 
 const storage = multer.diskStorage({

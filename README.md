@@ -34,7 +34,7 @@ An enterprise-grade, single-user Cloud CRM and Billing Management System built s
 - **PDF Generation**: High-fidelity HTML/CSS print rendering via `puppeteer-core`
 - **Hosting Platforms**:
   - **Online Database**: [Turso](https://turso.tech)
-  - **Web Application**: [Render](https://render.com)
+  - **Web Application**: [Vercel](https://vercel.com) (Serverless Functions & Global CDN)
 
 ---
 
@@ -61,7 +61,7 @@ This initializes `dev.db` and seeds the default administrator account:
 ### 3. Run Development Servers
 In two separate terminals:
 ```bash
-# Terminal 1 - Backend API (Port 5000):
+# Terminal 1 - Backend API (Port 3000):
 cd server && npm run dev
 
 # Terminal 2 - Frontend UI (Port 5173):
@@ -103,53 +103,47 @@ Open your browser at `http://localhost:5173`.
 
 ---
 
-### Step 2: Deploy to Render
-1. Push your repository to GitHub or GitLab.
-2. Sign in to [Render](https://render.com) and click **New +** → **Web Service**.
-3. Connect your repository.
-4. Set the following settings:
-   - **Name**: `cogniviz-billing-system`
-   - **Region**: Singapore (or nearest to India)
-   - **Branch**: `main`
-   - **Root Directory**: Leave blank (uses repository root)
-   - **Runtime**: `Node`
-   - **Build Command**:
-     ```bash
-     npm install && cd client && npm install && npm run build && cd ../server && npm install && npm run build && cd ..
-     ```
-   - **Start Command**:
-     ```bash
-     cd server && npm run start
-     ```
-   - **Plan**: `Free` or `Starter`
+### Step 2: Deploy to Vercel
 
-5. Add Environment Variables in the **Environment** tab on Render:
-   | Key | Value |
-   | :--- | :--- |
-   | `NODE_ENV` | `production` |
-   | `PORT` | `10000` |
-   | `JWT_SECRET` | *(Generate a random 32+ character string)* |
-   | `ADMIN_EMAIL` | `admin@cogniviz.com` |
-   | `ADMIN_PASSWORD` | `YourSecurePassword2026` |
-   | `ADMIN_NAME` | `Cogniviz Administrator` |
-   | `TURSO_DATABASE_URL` | `libsql://cogniviz-billing-db-yourorg.turso.io` |
-   | `TURSO_AUTH_TOKEN` | `your-turso-auth-token` |
-   | `SMTP_HOST` | `smtp.gmail.com` *(or your SMTP host)* |
-   | `SMTP_PORT` | `587` |
-   | `SMTP_USER` | `billing@cogniviz.com` |
-   | `SMTP_PASS` | `your-google-app-password` |
-   | `SMTP_FROM` | `"Cogniviz Billing" <billing@cogniviz.com>` |
+1. Push your repository to GitHub:
+   ```bash
+   git push origin main
+   ```
+2. Sign in to [Vercel](https://vercel.com) and click **Add New...** → **Project**.
+3. Import your GitHub repository (`Cogniviz-Billing-System`).
+4. Configure the Project Settings:
+   - **Framework Preset**: `Other` (or leave default Vite detected)
+   - **Root Directory**: `./` (leave at root)
+   - **Build Command**: `npm run build` (or leave enabled to run default from `vercel.json`)
+   - **Output Directory**: `client/dist` (handled automatically by `vercel.json`)
+5. Add Environment Variables in the **Environment Variables** section:
+   | Key | Value | Description |
+   | :--- | :--- | :--- |
+   | `NODE_ENV` | `production` | Production mode |
+   | `PORT` | `3000` | Port configuration |
+   | `JWT_SECRET` | *(Generate a 32+ char string)* | Token encryption secret |
+   | `ADMIN_EMAIL` | `admin@cogniviz.com` | Default admin login |
+   | `ADMIN_PASSWORD` | `YourSecurePassword2026` | Default admin password |
+   | `ADMIN_NAME` | `Cogniviz Administrator` | Admin profile name |
+   | `TURSO_DATABASE_URL` | `libsql://cogniviz-billing-db-yourorg.turso.io` | Turso Cloud DB URL |
+   | `TURSO_AUTH_TOKEN` | `your-turso-auth-token` | Turso Cloud DB token |
+   | `SMTP_HOST` | `smtp.gmail.com` | Gmail / SMTP Host |
+   | `SMTP_PORT` | `587` | SMTP Port |
+   | `SMTP_SECURE` | `false` | TLS secure flag |
+   | `SMTP_USER` | `contact.cogniviz@gmail.com` | Sender email address |
+   | `SMTP_PASS` | `your-16-char-app-password` | Gmail 16-character App Password |
+   | `SMTP_FROM` | `"Cogniviz Billing" <contact.cogniviz@gmail.com>` | Sender display string |
 
-6. Click **Deploy Web Service**. Render will automatically build the React frontend into `client/dist`, compile the Express server, and serve the application on a free HTTPS URL (e.g. `https://cogniviz-billing-system.onrender.com`).
+6. Click **Deploy**. Vercel will build the React client (`client/dist`), compile the Express backend, and deploy the serverless functions (`/api/*`).
 
 ---
 
 ### Step 3: Connect Custom Domain & HTTPS
-1. In your Render Dashboard, go to your Web Service → **Settings** → **Custom Domains**.
-2. Click **Add Custom Domain** (e.g., `billing.cogniviz.com`).
-3. In your DNS provider (GoDaddy, Cloudflare, Namecheap):
-   - Add a `CNAME` record pointing `billing` to your Render service URL (e.g. `cogniviz-billing-system.onrender.com`).
-4. Render automatically provisions and renews a free Let's Encrypt SSL/TLS certificate.
+1. In your Vercel Dashboard, go to your Project → **Settings** → **Domains**.
+2. Enter your domain (e.g., `billing.cogniviz.com` or `invoice.cogniviz.com`) and click **Add**.
+3. In your DNS provider (GoDaddy, Cloudflare, Namecheap, Hostinger):
+   - Add a `CNAME` record pointing your subdomain to `cname.vercel-dns.com`.
+4. Vercel automatically generates and provisions an SSL/TLS certificate.
 
 ---
 

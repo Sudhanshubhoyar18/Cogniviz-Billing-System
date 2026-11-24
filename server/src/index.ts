@@ -49,18 +49,32 @@ const authLimiter = rateLimit({
 
 // Static uploads directory
 const uploadsDir = path.resolve(__dirname, '../uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
+try {
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+} catch {
+  // Silent fallback for read-only serverless environment
 }
 app.use('/uploads', express.static(uploadsDir));
 
-// Health check
+// Health check & root API status
 app.get('/health', (req, res) => {
   res.json({
     status: 'healthy',
     uptime: process.uptime(),
     timestamp: new Date().toISOString(),
     service: 'Cogniviz CRM & Billing API',
+  });
+});
+
+app.get('/api', (req, res) => {
+  res.json({
+    status: 'healthy',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+    service: 'Cogniviz CRM & Billing API',
+    platform: process.env.VERCEL ? 'Vercel Serverless' : 'Node.js',
   });
 });
 
@@ -107,9 +121,14 @@ if (fs.existsSync(clientDist)) {
 // Global Error Handler
 app.use(errorHandler);
 
-const PORT = config.port;
-app.listen(PORT, () => {
-  console.log(`🚀 Cogniviz Billing System API running on port ${PORT} [${config.nodeEnv}]`);
-  console.log(`📡 URL: http://localhost:${PORT}`);
-});
+if (!process.env.VERCEL) {
+  const PORT = config.port;
+  app.listen(PORT, () => {
+    console.log(`🚀 Cogniviz Billing System API running on port ${PORT} [${config.nodeEnv}]`);
+    console.log(`📡 URL: http://localhost:${PORT}`);
+  });
+}
+
+export { app };
+export default app;
 

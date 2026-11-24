@@ -38,7 +38,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 ENV NODE_ENV=production
-ENV PORT=5000
+ENV PORT=3000
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
 COPY --from=builder /app/package*.json ./
@@ -50,7 +50,7 @@ COPY --from=builder /app/client/dist ./client/dist
 COPY --from=builder /app/server/prisma ./server/prisma
 COPY --from=builder /app/server/src/templates ./server/src/templates
 
-EXPOSE 5000
+EXPOSE 3000
 
 CMD ["node", "server/dist/index.js"]
 
