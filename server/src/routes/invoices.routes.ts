@@ -139,7 +139,7 @@ router.post('/', requireAuth, async (req: AuthenticatedRequest, res: Response) =
     }
 
     let finalCustomerId = customerId;
-    let customerRecord = null;
+    let customerRecord: any = null;
 
     if (customerId) {
       customerRecord = await prisma.customer.findUnique({ where: { id: customerId } });
